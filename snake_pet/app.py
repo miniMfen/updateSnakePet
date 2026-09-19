@@ -752,11 +752,19 @@ def selftest():
     print('selftest OK')
 
 
+def _setup_logging():
+    '''日志限量轮转(≤5MB×2 备份,AC-F8-3)'''
+    import logging.handlers
+    log_path = os.path.join(base_dir(), 'snake_pet.log')
+    handler = logging.handlers.RotatingFileHandler(log_path, maxBytes=5 * 1024 * 1024,
+                                                   backupCount=2, encoding='utf-8')
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s',
+                        handlers=[handler])
+
+
 def main():
     import logging
-    logging.basicConfig(level=logging.INFO,
-                        format='%(asctime)s %(levelname)s %(message)s',
-                        filename=os.path.join(base_dir(), 'snake_pet.log'))
+    _setup_logging()
     if not acquire_single_instance_mutex():
         return
     ensure_dpi_aware()
