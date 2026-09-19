@@ -128,24 +128,28 @@ class Snake:
         return (math.cos(self.heading_angle), math.sin(self.heading_angle))
 
     def pos(self, behind):
-        '''沿轨迹回溯 behind 距离处的坐标(带缓存索引加速,身体绘制用)'''
+        '''沿轨迹回溯 behind 距离处的坐标(带缓存索引加速,身体绘制用)。
+        [P5-确认] v4 原实现在定位后于 [i-1,i] 段插值,目标实际落在 [i,i+1] 段,
+        靠 1.6px 小步距掩盖误差;拎起引入 30px 大段后误差达 14px,已修正为
+        在包含目标的 [i,i+1] 段上插值(对小步距行为不变)'''
         last = self.path[-1]
         target = last[2] - behind
+        n = len(self.path)
         i = self._pos_i
-        if i >= len(self.path):
-            i = len(self.path) - 1
-        if self.path[i][2] > target:
-            while i > 0 and self.path[i][2] > target:
-                i -= 1
+        if i >= n:
+            i = n - 1
+        if self.path[i][2] <= target:
+            while i + 1 < n and self.path[i + 1][2] <= target:
+                i += 1
         else:
-            i = len(self.path) - 1
             while i > 0 and self.path[i][2] > target:
                 i -= 1
         self._pos_i = i
-        q = self.path[i]
-        if i == 0:
+        if i >= n - 1:
+            q = self.path[n - 1]
             return (q[0], q[1])
-        p = self.path[i - 1]
+        p = self.path[i]
+        q = self.path[i + 1]
         span = q[2] - p[2]
         t = (target - p[2]) / span if span > 1e-09 else 0
         return (p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t)

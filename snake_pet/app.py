@@ -12,12 +12,16 @@ from ctypes import wintypes
 
 from .behavior import BehaviorMixin
 from .config import base_dir, config_path, load_config, save_config
-from .constants import (ACTIVE_STEP, APP_NAME, GROW_PER_FOOD, MARGIN, MAX_PATH, QUIET_STEP,
-                        SATIETY_DECAY_PER_SEC, SATIETY_START, SEG, TONGUE_PERIOD, TICK_MS)
+from .constants import (ACTIVE_STEP, APP_NAME, FX_COLORS, GROW_PER_FOOD, HEAD_R, MARGIN,
+                        MAX_PATH, QUIET_STEP, SATIETY_DECAY_PER_SEC, SATIETY_START, SEG,
+                        TONGUE_PERIOD, TICK_MS)
 from .fx import FxMixin
+from .hats import HatRenderer
+from .interact import InteractSM, DRAG_MAX_STEP
 from .menu import MenuMixin
 from .platform_win import (BITMAPINFOHEADER, HOOKPROC, MSLLHOOKSTRUCT, PM_REMOVE,
-                           WH_MOUSE_LL, WM_LBUTTONDOWN, WM_QUIT, WM_RBUTTONDOWN, WS_EX_LAYERED,
+                           WH_MOUSE_LL, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_MOUSEMOVE, WM_QUIT,
+                           WM_RBUTTONDOWN, WS_EX_LAYERED,
                            WS_EX_TOPMOST, ULW_ALPHA, _BLEND, acquire_single_instance_mutex,
                            create_layered_window, destroy_window, ensure_dpi_aware,
                            enum_topmost_layered_windows, grab_screen_bgra, is_desktop_window,
@@ -57,6 +61,8 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
         self._tongue_timer = random.randint(*TONGUE_PERIOD)
         self.body_scale = 1.0      # P6 胖瘦系数钩子
         self._last_active = True   # 渲染投影层仅活跃档绘制
+        self._squash = 0           # P5 放下挤压动画帧
+        self._interact = InteractSM(None)  # P5 互动状态机(bounds 就绪后补)
         self._idle_timer = random.randint(600, 1200)
         self._chase_stall = 0
         self._chase_min = 1e+09
@@ -80,7 +86,6 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
         self._hook_ok = False
         self._sprite_apple = load_sprite('apple.png')
         self._sprite_head = load_sprite('snake_head.png')   # P3:整头贴图覆盖通道
-        from .hats import HatRenderer
         self._hat_renderer = HatRenderer()                  # P4:帽子衣柜
         self._sprite_name = None
         (spr, sname) = load_snake_sprite()
@@ -128,6 +133,7 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
         sx = random.uniform(self.bounds[0], self.bounds[2])
         sy = random.uniform(self.bounds[1], self.bounds[3])
         self.snake = Snake(sx, sy, random.uniform(-math.pi, math.pi), self.bounds)
+        self._interact.bounds = self.bounds
         if not headless and self._hwnd:
             sink_window_bottom(self._hwnd)
         if not headless and not self._start_hook():
@@ -187,6 +193,55 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
                                    self._hdc_mem, ctypes.byref(src), 0,
                                    ctypes.byref(_BLEND), ULW_ALPHA)
 
+    # ---- 互动(P5):状态机事件落地 ----
+    def _consume_interact(self, now):
+        self._interact.tick(now)
+        for (ev, x, y) in self._interact.take_events():
+            if ev == 'pet_done':
+                (hx, hy) = self.snake.head()
+                for _ in range(random.randint(3, 5)):
+                    self._spawn_fx('heart', hx + random.uniform(-18, 18),
+                                   hy - 8 + random.uniform(-14, 2),
+                                   size=random.uniform(4, 7), color=random.choice(FX_COLORS),
+                                   max=random.randint(36, 50), seed=random.random())
+                self._spawn_bubble('好开心~')
+                self.wag = 14
+            elif ev == 'drag_start':
+                if self.snake.coil is not None:
+                    self.snake.coil.fast_unwind()
+                if self._is_sleeping():
+                    self._wake()
+                self.tilt = 12
+            elif ev == 'drag':
+                self._drag_head_to(x, y)
+            elif ev == 'drop':
+                (tx, ty) = (x - self.vx, y - self.vy)
+                for _ in range(3):
+                    self._spawn_fx('foam', tx + random.uniform(-9, 9), ty + random.uniform(-5, 7),
+                                   vx=random.uniform(-0.8, 0.8), vy=random.uniform(-0.4, 0.2),
+                                   size=random.uniform(3, 6), max=random.randint(24, 40),
+                                   seed=random.random())
+                self._squash = 6
+
+    def _drag_head_to(self, x, y):
+        '''拎起跟随:头移向光标(clamp 进 bounds,单帧限速防拉裂),身体沿路径跟随'''
+        (cx, cy) = self._interact.cursor
+        (lx, ly) = (cx - self.vx, cy - self.vy)
+        (tx, ty) = self.snake._clamp(lx, ly)
+        (hx, hy) = self.snake.head()
+        d = math.hypot(tx - hx, ty - hy)
+        if d < 0.5:
+            return
+        if d > DRAG_MAX_STEP:
+            k = DRAG_MAX_STEP / d
+            tx = hx + (tx - hx) * k
+            ty = hy + (ty - hy) * k
+        last = self.snake.path[-1]
+        nd = last[2] + math.hypot(tx - last[0], ty - last[1])
+        self.snake.path.append((tx, ty, nd))
+        while len(self.snake.path) > MAX_PATH:
+            self.snake.path.popleft()
+
     # ---- 全局鼠标钩子 ----
     def _start_hook(self):
         def handler(nCode, wParam, lParam):
@@ -195,6 +250,12 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
                     data = ctypes.cast(lParam, ctypes.POINTER(MSLLHOOKSTRUCT)).contents
                     if wParam == WM_LBUTTONDOWN:
                         self.evq.put(('L', data.pt.x, data.pt.y))
+                    elif wParam == WM_LBUTTONUP:
+                        self.evq.put(('LU', data.pt.x, data.pt.y))
+                    elif wParam == WM_MOUSEMOVE:
+                        # 仅在互动进行中转发,避免事件洪泛
+                        if self._interact.state != InteractSM.IDLE:
+                            self.evq.put(('MOVE', data.pt.x, data.pt.y))
                     elif wParam == WM_RBUTTONDOWN:
                         self.evq.put(('R', data.pt.x, data.pt.y))
                 except Exception:
@@ -231,6 +292,10 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
         self._hook = None
 
     # ---- 事件消费 ----
+    def _hit_snake_head(self, lx, ly):
+        (hx, hy) = self.snake.head()
+        return math.hypot(lx - hx, ly - hy) <= 1.5 * HEAD_R
+
     def _drain_events(self):
         while True:
             try:
@@ -240,25 +305,32 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
             except Exception as e:
                 logging.exception('事件处理异常: %r', e)
                 return
+            now = time.monotonic()
             if self.menu_open and kind in ('L', 'R') and self._menu_hit(x, y):
                 continue
             if kind == 'L':
                 if self.menu_open:
                     continue
                 (lx, ly) = (x - self.vx, y - self.vy)
-                now = time.monotonic()
                 hit = self._hit_snake(lx, ly)
                 if hit:
+                    # 双击优先(双击 = hop+气泡;单按蛇身无动作,防误触)
                     if now - self._last_lclick < 0.45 and math.hypot(x - self._last_lx, y - self._last_ly) < 70:
                         self._last_lclick = 0
+                        self._interact.state = InteractSM.IDLE
+                        self.hop = 8
                         self._on_double_click(lx, ly)
                     else:
                         self._last_lclick = now
                         self._last_lx = x
                         self._last_ly = y
-                        self.hop = 8
+                        self._interact.press(x, y, self._hit_snake_head(lx, ly), now)
                 elif not self.cfg['no_spawn'] and self._is_desktop_at(x, y):
                     self._spawn_food(lx, ly)
+            elif kind == 'LU':
+                self._interact.release(x, y, now)
+            elif kind == 'MOVE':
+                self._interact.move(x, y, now)
             elif kind == 'R':
                 hit = self._hit_snake(x - self.vx, y - self.vy)
                 if not self.menu_open and hit:
@@ -304,6 +376,7 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
             if self._zdan_timer <= 0:
                 self._zdan_timer = random.randint(18, 26)
                 self._spawn_zdan()
+            self._consume_interact(now)   # 睡中也要处理互动(拎起唤醒)
             if now - self._last_check >= 1.0:
                 self._last_check = now
                 self._refresh_avoid()
@@ -326,7 +399,9 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
             self._self_check()
         step = ACTIVE_STEP if active else QUIET_STEP
         self._last_active = active
+        self._consume_interact(now)
         self._coil_step(active)
+        dragging = self._interact.state == InteractSM.DRAG
         if active and self.foods and self._break_chase <= 0:
             (hx, hy) = self.snake.head()
             f0 = min(self.foods, key=lambda f: (f['x'] - hx) ** 2 + (f['y'] - hy) ** 2)
@@ -351,7 +426,10 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
             self.snake.ignore_food = False
         pts = [(f['x'], f['y']) for f in self.foods]
         self.snake.avoid_rects = self._avoid
-        eaten = self.snake.move(step, active, pts, not self.cfg['no_eat'])
+        if dragging:
+            eaten = []      # 拎起中:头由 drag 事件驱动,自动位移暂停
+        else:
+            eaten = self.snake.move(step, active, pts, not self.cfg['no_eat'])
         for px, py in eaten:
             self._remove_food_at(px, py)
             self._on_eat()

@@ -53,6 +53,12 @@ class FxMixin:
             self.wag -= 1
         if self.tilt > 0:
             self.tilt -= 1
+        # P5 放下挤压:body_scale 从 1.1 平滑回落 1.0
+        if getattr(self, '_squash', 0) > 0:
+            self._squash -= 1
+            self.body_scale = 1.0 + 0.1 * (self._squash / 6.0)
+        else:
+            self.body_scale = 1.0
         # P3 吐信计时:每 4~7s 弹出 8 帧(睡觉时不吐)
         if self.tongue > 0:
             self.tongue -= 1

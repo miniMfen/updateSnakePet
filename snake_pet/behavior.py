@@ -163,6 +163,26 @@ class BehaviorMixin:
         if self._is_sleeping():
             self._wake()
 
+    def _feed_one(self):
+        '''投喂(P5):头前方 150~300px、heading±40° 随机;受 MAX_FOODS 约束'''
+        if len(self.foods) >= MAX_FOODS:
+            self._spawn_bubble('吃不下了~')
+            return
+        (hx, hy) = self.snake.head()
+        (x0, y0, x1, y1) = self.bounds
+        (fx, fy) = (hx, hy)
+        for _ in range(8):
+            ang = self.snake.heading_angle + random.uniform(-math.radians(40), math.radians(40))
+            dist = random.uniform(150, 300)
+            fx = min(max(hx + math.cos(ang) * dist, x0), x1)
+            fy = min(max(hy + math.sin(ang) * dist, y0), y1)
+            ok = all(not (ax0 <= fx <= ax1 and ay0 <= fy <= ay1)
+                     for (ax0, ay0, ax1, ay1) in self._avoid)
+            if ok:
+                break
+        self._spawn_food(fx, fy)
+        self._spawn_bubble('开饭啦~')
+
     def _remove_food_at(self, x, y):
         '''吃掉坐标处的食物;同一位置堆叠的多份食物一次性全部移除'''
         keep = []

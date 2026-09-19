@@ -16,6 +16,7 @@ import time
 from .app import SnakePet, main as app_main, selftest
 from .config import base_dir, load_config
 from .constants import MAX_FOODS, QUIET_STEP, SATIETY_START, SEG, TICK_MS
+from .interact import InteractSM
 from .platform_win import working_set_mb
 
 
@@ -47,6 +48,10 @@ def run_soak(seconds, headless=False, out=None):
     fx_max = 0
     coils = 0
     in_coil = False
+    drags = 0
+    in_drag = False
+    pets_start = app._interact.affinity
+    gesture = None
     frame_ms = []
     frames = 0
     t0 = time.monotonic()
@@ -59,6 +64,7 @@ def run_soak(seconds, headless=False, out=None):
             last = now
             ft0 = time.perf_counter()
             try:
+                app._drain_events()
                 app._step()
             except Exception as e:
                 exceptions.append(repr(e))
@@ -74,6 +80,29 @@ def run_soak(seconds, headless=False, out=None):
                 logging.info('soak 盘旋: 第 %d 次盘旋开始', coils)
             elif app.snake.coil is None:
                 in_coil = False
+            if app._interact.state == InteractSM.DRAG and not in_drag:
+                drags += 1
+                in_drag = True
+            elif app._interact.state != InteractSM.DRAG:
+                in_drag = False
+            # 随机手势注入(模拟用户:抚摸/拎起/点击)
+            if gesture is None:
+                if random.random() < 0.008:
+                    (hx, hy) = app.snake.head()
+                    kind = random.choice(('pet', 'drag', 'click'))
+                    gesture = {'kind': kind, 't': 0, 'x': hx + app.vx, 'y': hy + app.vy,
+                               'dx': random.uniform(-8, 8), 'dy': random.uniform(-8, 8)}
+                    app.evq.put(('L', gesture['x'], gesture['y']))
+            else:
+                gesture['t'] += 1
+                if gesture['kind'] == 'drag' and gesture['t'] % 3 == 0 and gesture['t'] < 33:
+                    gesture['x'] += gesture['dx'] * 8
+                    gesture['y'] += gesture['dy'] * 8
+                    app.evq.put(('MOVE', gesture['x'], gesture['y']))
+                hold = 30 if gesture['kind'] == 'pet' else (36 if gesture['kind'] == 'drag' else 2)
+                if gesture['t'] >= hold:
+                    app.evq.put(('LU', gesture['x'], gesture['y']))
+                    gesture = None
         if now >= next_food:
             next_food = now + 25.0
             # 爆发式撒食 1~2 颗(模拟用户点击),留出足够长的无食物窗口让空闲盘旋得以触发
@@ -98,6 +127,8 @@ def run_soak(seconds, headless=False, out=None):
         'exceptions': exceptions,
         'foods_eaten': foods_eaten,
         'coils': coils,
+        'drags': drags,
+        'pets': app._interact.affinity - pets_start,
         'path_max': path_max,
         'fx_max': fx_max,
         'log_path': log_path,

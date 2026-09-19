@@ -17,8 +17,8 @@ class MenuMixin:
 
     @property
     def MENU_PH(self):
-        # 行数含:开关×3 + 状态 + 帽子(折两行) + 主题 + 卖萌 + 盘旋 + 长度 + 动作×2
-        nrows = 3 + 1 + 2 + 1 + 1 + 1 + 1 + 2
+        # 行数含:开关×3 + 状态 + 帽子(折两行) + 主题 + 卖萌 + 投喂 + 盘旋 + 长度 + 动作×2
+        nrows = 3 + 1 + 2 + 1 + 1 + 1 + 1 + 1 + 2
         return self.MENU_PAD + self.MENU_HEAD + nrows * self.MENU_ROWH + self.MENU_PAD
 
     HAT_GRID_LINES = (('自动', '摘掉', '夜帽', '圣诞', '皇冠'),
@@ -168,6 +168,10 @@ class MenuMixin:
         y += rowh
         self._menu_rows.append({'kind': 'button', 'label': '卖萌一次…', 'y': y, 'h': rowh})
         self._menu_hits.append((0, y, pw, y + rowh, (lambda: self._do_moe())))
+        y += rowh
+        self._menu_rows.append({'kind': 'button', 'label': '投喂一个苹果', 'y': y, 'h': rowh,
+                                'style': 'teal'})
+        self._menu_hits.append((0, y, pw, y + rowh, (lambda: self._feed_one())))
         y += rowh
         self._menu_rows.append({'kind': 'button', 'label': '盘旋一次', 'y': y, 'h': rowh,
                                 'style': 'teal'})
