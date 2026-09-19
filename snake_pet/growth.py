@@ -105,7 +105,7 @@ def default_state():
     return {
         'pos': None,
         'heading': 0.0,
-        'body_len': 100.0,
+        'body_len': 160.0,
         'satiety': 70.0,
         'total_eaten': 0,
         'affinity': 0,

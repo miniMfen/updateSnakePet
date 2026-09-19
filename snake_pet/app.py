@@ -12,9 +12,10 @@ from ctypes import wintypes
 
 from .behavior import BehaviorMixin
 from .config import base_dir, config_path, load_config, save_config
-from .constants import (ACHIEVEMENTS, ACTIVE_STEP, APP_NAME, FX_COLORS, GROW_PER_FOOD, HEAD_R,
-                        MARGIN, MAX_PATH, QUIET_STEP, SATIETY_DECAY_PER_SEC, SATIETY_START, SEG,
-                        SAVE_PERIOD_SEC, TONGUE_PERIOD, TICK_MS)
+from .constants import (ACHIEVEMENTS, ACTIVE_STEP, APP_NAME, BODY_START_SEG, FX_COLORS,
+                        GROW_PER_FOOD, HEAD_R, MARGIN, MAX_PATH, QUIET_STEP,
+                        SATIETY_DECAY_PER_SEC, SATIETY_START, SEG, SAVE_PERIOD_SEC,
+                        TONGUE_PERIOD, TICK_MS)
 from .fx import FxMixin
 from .growth import (Achievements, digest_step, fatness_of, load_pet_state, save_pet_state,
                      stage_baseline, stage_coeff, stage_of)
@@ -140,10 +141,13 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
             self.bounds = (bx0, by0, bx1, by1)
         sx = random.uniform(self.bounds[0], self.bounds[2])
         sy = random.uniform(self.bounds[1], self.bounds[3])
-        self.snake = Snake(sx, sy, random.uniform(-math.pi, math.pi), self.bounds)
+        # v5.1 初始体长 8 节(用户反馈 5 节像蝌蚪,适量加长)
+        self.snake = Snake(sx, sy, random.uniform(-math.pi, math.pi), self.bounds,
+                           body_len=SEG * BODY_START_SEG)
         self._interact.bounds = self.bounds
         # ---- P6 存档读取:位置/朝向/体长/饱食/计数/成就/皮肤 ----
-        self._state_loaded = load_pet_state()
+        self._autosave = bool(cfg.get('autosave', True))  # v5.1 记住小蛇开关
+        self._state_loaded = load_pet_state() if self._autosave else None
         st = self._state_loaded
         if st is not None:
             if st.get('pos'):
@@ -271,6 +275,8 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
         }
 
     def save_pet_state_now(self, reason='manual'):
+        if not self._autosave:
+            return
         self._last_save = time.monotonic()
         if save_pet_state(self._pet_state()):
             logging.info('存档已保存(%s)', reason)

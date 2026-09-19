@@ -17,8 +17,8 @@ class MenuMixin:
 
     @property
     def MENU_PH(self):
-        # 行数含:开关×3 + 状态 + 帽子(折两行) + 卖萌 + 皮肤 + 成就 + 投喂 + 盘旋 + 长度 + 动作×2
-        nrows = 3 + 1 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 2
+        # 行数含:开关×4 + 状态 + 帽子(折两行) + 卖萌 + 皮肤 + 成就 + 投喂 + 盘旋 + 长度 + 动作×2
+        nrows = 4 + 1 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 2
         return self.MENU_PAD + self.MENU_HEAD + nrows * self.MENU_ROWH + self.MENU_PAD
 
     def _skin_chip_box(self, i, y):
@@ -117,6 +117,7 @@ class MenuMixin:
             return cb
 
         for key, label in (('no_eat', '不再吃食物'), ('no_spawn', '左键点击不再生成食物'),
+                           ('autosave', '记住小蛇(下次开机还原)'),
                            ('autostart', '开机自启动')):
             self._menu_rows.append({
                 'kind': 'toggle',

@@ -11,22 +11,32 @@ from .sprites import sprite_dir
 
 HATS_SUBDIR = 'hats'
 
-# 默认元数据(与 sprites/hats/hats.json 同构;anchor 相对头半径,scale 相对头径 2R)
+# 默认元数据(与 sprites/hats/hats.json 同构)
+# anchor: 相对头半径的佩戴点(x 沿 heading, y 沿头顶方向, 负=向上)
+# pivot: 贴图内的"佩戴线"位置(占图宽/高的比例)——佩戴点对齐该处,默认底边中心(0.5,1.0)
+# pivot_y 越小=帽子相对佩戴点越"抬升"。第一排帽(夜帽/圣诞/皇冠)逐顶校准过。
 DEFAULT_REGISTRY = {
-    'nightcap': {'name': '夜帽', 'anchor': [0.0, -0.80], 'scale': 1.30,
-                 'base_offset_deg': 35, 'builtin_fallback': 'nightcap'},
-    'santa': {'name': '圣诞', 'anchor': [0.0, -0.85], 'scale': 1.15,
-              'base_offset_deg': 15, 'builtin_fallback': 'santa'},
-    'crown': {'name': '皇冠', 'anchor': [0.0, -0.72], 'scale': 1.20,
-              'base_offset_deg': 0, 'builtin_fallback': 'crown'},
-    'graduation': {'name': '学士', 'anchor': [0.0, -0.80], 'scale': 1.25,
-                   'base_offset_deg': 0, 'builtin_fallback': 'graduation'},
-    'tophat': {'name': '礼帽', 'anchor': [0.0, -0.85], 'scale': 1.15,
-               'base_offset_deg': 0, 'builtin_fallback': 'tophat'},
-    'cap_blue': {'name': '棒球', 'anchor': [0.08, -0.80], 'scale': 1.15,
-                 'base_offset_deg': 0, 'builtin_fallback': 'cap_blue'},
-    'bowknot': {'name': '蝴蝶结', 'anchor': [-0.25, -0.78], 'scale': 0.95,
-                'base_offset_deg': 0, 'builtin_fallback': 'bowknot'},
+    'nightcap': {'name': '夜帽', 'anchor': [0.0, -0.72], 'scale': 1.25,
+                 'base_offset_deg': 35, 'builtin_fallback': 'nightcap',
+                 'pivot': [0.58, 0.92]},
+    'santa': {'name': '圣诞', 'anchor': [0.0, -0.72], 'scale': 1.1,
+              'base_offset_deg': 30, 'builtin_fallback': 'santa',
+              'pivot': [0.5, 0.94]},
+    'crown': {'name': '皇冠', 'anchor': [0.0, -0.66], 'scale': 1.08,
+              'base_offset_deg': 0, 'builtin_fallback': 'crown',
+              'pivot': [0.5, 0.96]},
+    'graduation': {'name': '学士', 'anchor': [0.0, -0.78], 'scale': 1.2,
+                   'base_offset_deg': 0, 'builtin_fallback': 'graduation',
+                   'pivot': [0.5, 0.62]},
+    'tophat': {'name': '礼帽', 'anchor': [0.0, -0.82], 'scale': 1.1,
+               'base_offset_deg': 0, 'builtin_fallback': 'tophat',
+               'pivot': [0.5, 0.88]},
+    'cap_blue': {'name': '棒球', 'anchor': [0.06, -0.72], 'scale': 1.1,
+                 'base_offset_deg': 0, 'builtin_fallback': 'cap_blue',
+                 'pivot': [0.5, 0.7]},
+    'bowknot': {'name': '蝴蝶结', 'anchor': [-0.18, -0.66], 'scale': 0.92,
+                'base_offset_deg': 0, 'builtin_fallback': 'bowknot',
+                'pivot': [0.5, 0.6]},
 }
 HAT_IDS = tuple(DEFAULT_REGISTRY.keys())
 
@@ -142,18 +152,32 @@ def render_builtin_hat(hat_id, width):
 
 
 class HatRenderer:
-    '''帽子渲染:贴图加载/旋转/缩放缓存,兜底切换'''
+    '''帽子渲染:贴图加载/旋转/缩放缓存,兜底切换。
+    P5.1:锚定改为「佩戴线」模式——pivot 指定贴图内作为佩戴点的位置(比例),
+    该点精确对齐头上的锚点;经两次旋转(expand)后仍追踪其位置,逐顶可校准。'''
 
     def __init__(self):
         self.registry = load_registry()
         self._cache = {}
 
+    @staticmethod
+    def _rot_point(p, c, angle_deg, src_size, dst_size):
+        '''PIL rotate(angle, expand=True) 后,原坐标 p 的新坐标(视觉逆时针为正)'''
+        A = math.radians(angle_deg)
+        ca, sa = math.cos(A), math.sin(A)
+        vx, vy = p[0] - c[0], p[1] - c[1]
+        nx = ca * vx + sa * vy
+        ny = -sa * vx + ca * vy
+        d = ((dst_size[0] - src_size[0]) / 2.0, (dst_size[1] - src_size[1]) / 2.0)
+        return (nx + c[0] + d[0], ny + c[1] + d[1])
+
     def get(self, hat_id, R, theta):
-        '''返回 (旋转后的贴图, 锚点x, 锚点y);无法渲染返回 None'''
+        '''返回 (旋转后贴图, pivot在贴图内的x, pivot在贴图内的y);无法渲染返回 None'''
         meta = self.registry.get(hat_id)
         if meta is None:
             return None
         base = float(meta.get('base_offset_deg', 0))
+        pivot = tuple(meta.get('pivot', [0.5, 1.0]))
         width = max(12, int(2 * R * float(meta.get('scale', 1.0))))
         theta_deg = round(math.degrees(theta)) % 360
         key = (hat_id, width, theta_deg)
@@ -165,11 +189,18 @@ class HatRenderer:
         else:
             ratio = spr.height / max(1, spr.width)
             spr = spr.resize((width, max(1, int(width * ratio))), Image.LANCZOS)
-            spr = spr.rotate(-base, resample=Image.BICUBIC, expand=True)
-        rot = spr.rotate(-theta_deg - 0.0, resample=Image.BICUBIC, expand=True)
-        out = (rot, float(meta.get('anchor', [0, -0.8])[0]),
-               float(meta.get('anchor', [0, -0.8])[1]))
+        # 旋转 1:按画稿基准角扶正;旋转 2:随头朝向
+        spr1 = spr.rotate(-base, resample=Image.BICUBIC, expand=True)
+        spr2 = spr1.rotate(-theta_deg, resample=Image.BICUBIC, expand=True)
+        # 追踪 pivot 点
+        c0 = (spr.width / 2.0, spr.height / 2.0)
+        pt = (pivot[0] * spr.width, pivot[1] * spr.height)
+        pt = self._rot_point(pt, c0, -base, spr.size, spr1.size)
+        c1 = (spr1.width / 2.0, spr1.height / 2.0)
+        pt = self._rot_point(pt, c1, -theta_deg, spr1.size, spr2.size)
         if len(self._cache) > 400:
             self._cache.clear()
+        ax_, ay_ = tuple(meta.get('anchor', [0.0, -0.8]))
+        out = (spr2, pt[0], pt[1], ax_, ay_)
         self._cache[key] = out
         return out

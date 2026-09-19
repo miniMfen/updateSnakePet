@@ -112,6 +112,7 @@ def test_head_sprite_override(tmp_path):
         app.snake.move(QUIET_STEP, False, [], True)
     before = _frame(app)
     from snake_pet.sprites import sprite_dir
+    os.makedirs(sprite_dir(), exist_ok=True)
     dst = os.path.join(sprite_dir(), 'snake_head.png')
     img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
     px = img.load()

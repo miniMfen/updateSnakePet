@@ -89,7 +89,7 @@ def test_resolve_hat_semantics():
 
 
 def test_renderer_rotates_and_falls_back(monkeypatch, tmp_path):
-    # 同一帽子不同朝向渲染出不同旋转;贴图缺失时兜底图非空
+    # 同一帽子不同朝向:贴图旋转不同、锚点恒定;pivot 随旋转追踪
     from snake_pet import hats as hm
     monkeypatch.setattr(hm, 'hats_dir', lambda: str(tmp_path))
     hr = HatRenderer()
@@ -97,5 +97,5 @@ def test_renderer_rotates_and_falls_back(monkeypatch, tmp_path):
     b = hr.get('crown', 17.0, math.pi / 2)
     assert a is not None and b is not None
     assert a[0].size != b[0].size or a[0].tobytes() != b[0].tobytes()
-    anchor_same = (a[1], a[2]) == (b[1], b[2])
-    assert anchor_same
+    assert (a[3], a[4]) == (b[3], b[4])            # 锚点(佩戴点)不随朝向变化
+    assert a[1] != b[1] or a[2] != b[2]            # pivot 随旋转追踪

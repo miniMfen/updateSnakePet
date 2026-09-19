@@ -10,7 +10,8 @@ from PIL import Image, ImageDraw, ImageFont
 from .constants import (BODY_R, C_BLUSH, C_CAP, C_CAP_EDGE, C_EFFECT, C_EYE, C_FOOD,
                         C_FOOD_HI, C_FOOD_LEAF, C_FOOD_LEAF_VEIN, C_FOOD_SHADE,
                         C_FOOD_STEM, C_MOUTH, C_PUPIL, DEFAULT_THEME, HEAD_R, PAD, SEG,
-                        PATTERN_EVERY, SNAKE_THEMES, TAPER_TAIL, TONGUE_FRAMES)
+                        PATTERN_EVERY, SS_MAX, SS_PIXEL_BUDGET,
+                        SNAKE_THEMES, TAPER_TAIL, TONGUE_FRAMES)
 from .hats import HatRenderer, hat_anchor_pos, resolve_hat
 
 
@@ -59,8 +60,11 @@ class RenderMixin:
         wy = int(min(ys) - PAD)
         w = int(max(xs) - min(xs) + PAD * 2 + 2)
         h = int(max(ys) - min(ys) + PAD * 2 + 2)
-        ss = 2 if w * h <= 1200000 else 1
-        img = Image.new('RGBA', (w * ss, h * ss), (0, 0, 0, 0))
+        area = w * h
+        # v5.1 像素预算式超采样:渲染像素数恒定 ≤ 预算,大画布自动降档,
+        # 既保证小画布 2× 抗锯齿(去马赛克),又不拖垮帧率
+        ss = min(SS_MAX, max(1.0, (SS_PIXEL_BUDGET / max(1, area)) ** 0.5))
+        img = Image.new('RGBA', (int(w * ss), int(h * ss)), (0, 0, 0, 0))
         d = ImageDraw.Draw(img)
 
         def L(px, py):
@@ -502,7 +506,8 @@ class RenderMixin:
         self._draw_hat_layer(img, hx, hy, ss, ang)
 
     def _draw_hat_layer(self, img, hx, hy, ss, ang):
-        '''第 7 层:帽子(P4)——随朝向旋转,贴图 + 内置兜底双通道;帽位随体型系数'''
+        '''第 7 层:帽子(P4)——随朝向旋转,贴图 + 内置兜底双通道;帽位随体型系数。
+        P5.1:pivot 佩戴线对齐锚点(不再整体居中贴,避免帽子盖住脸)'''
         hat_id = self._current_hat_id
         if hat_id is None:
             return
@@ -510,9 +515,9 @@ class RenderMixin:
         got = self._hat_renderer.get(hat_id, R, ang)
         if got is None:
             return
-        (spr, ax, ay) = got
-        (px_, py_) = hat_anchor_pos(hx, hy, ang, (ax, ay), R)
-        img.paste(spr, (int(px_ - spr.width / 2), int(py_ - spr.height / 2)), spr)
+        (spr, px_off, py_off, ax_frac, ay_frac) = got
+        (anchor_x, anchor_y) = hat_anchor_pos(hx, hy, ang, (ax_frac, ay_frac), R)
+        img.paste(spr, (int(anchor_x - px_off), int(anchor_y - py_off)), spr)
 
     def _draw_tongue(self, d, hx, hy, R, ang, ss, color):
         '''吐信动画:红色细长两叉,沿 heading 前伸 0.8R'''

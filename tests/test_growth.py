@@ -124,6 +124,28 @@ def test_state_roundtrip_and_corrupt(tmp_path):
 import os  # noqa: E402  (供上方 tmp_path 断言使用)
 
 
+def test_autosave_toggle_v51(tmp_path, monkeypatch):
+    # v5.1 自动存档开关:关→退出不写存档;开→退出写入(隔离存档目录)
+    import os
+    home = str(tmp_path / 'home')
+    os.makedirs(home, exist_ok=True)
+    monkeypatch.setenv('SNAKEPET_HOME', home)
+    cfg = load_config(str(tmp_path / 'cfg.json'))
+    cfg['autostart'] = False
+    cfg['autosave'] = False
+    random.seed(31)
+    app = SnakePet(cfg, headless=True)
+    app.quit()
+    assert not (tmp_path / 'home' / 'pet_state.json').exists(), '关闭自动存档后不应写存档'
+    cfg2 = load_config(str(tmp_path / 'cfg.json'))
+    cfg2['autostart'] = False
+    cfg2['autosave'] = True
+    random.seed(32)
+    app2 = SnakePet(cfg2, headless=True)
+    app2.quit()
+    assert (tmp_path / 'home' / 'pet_state.json').exists(), '开启自动存档应写存档'
+
+
 def test_periodic_save_clock(tmp_path, monkeypatch):
     # 60s 周期保存:注入时钟验证触发
     from snake_pet import growth as g

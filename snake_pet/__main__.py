@@ -20,9 +20,20 @@ from .interact import InteractSM
 from .platform_win import working_set_mb
 
 
+def _isolate_tool_home():
+    '''soak/探针强制使用独立存档目录,不污染用户真实宠物状态(v5.1)'''
+    if os.environ.get('SNAKEPET_TOOL_HOME'):
+        return
+    tool_home = os.path.join(base_dir(), 'reports', '_tool_home')
+    os.makedirs(tool_home, exist_ok=True)
+    os.environ['SNAKEPET_HOME'] = tool_home
+    os.environ['SNAKEPET_TOOL_HOME'] = '1'
+
+
 def run_soak(seconds, headless=False, out=None):
     '''无人值守浸泡:驱动主循环逻辑(可选真实窗口),结束输出统计 JSON。
     异常列表非空 → 退出码 1'''
+    _isolate_tool_home()
     log_path = os.path.join(base_dir(), 'snake_pet.log')
     logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s %(levelname)s %(message)s', filename=log_path)
@@ -147,8 +158,9 @@ def run_soak(seconds, headless=False, out=None):
 
 
 def run_probe(outdir):
-    '''确定性种子渲染 8 张代表帧 PNG + probe_index.json(P0 阶段盘旋暂用 v4 spin)'''
+    '''确定性种子渲染代表帧 PNG + probe_index.json'''
     import logging
+    _isolate_tool_home()
     logging.basicConfig(level=logging.WARNING)
     os.makedirs(outdir, exist_ok=True)
     random.seed(20260919)

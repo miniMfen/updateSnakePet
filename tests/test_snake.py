@@ -188,6 +188,54 @@ def test_eat_radius_constant():
     assert EAT_RADIUS == 15
 
 
+def test_min_turn_deadzone_v51():
+    # v5.1 最小转弯角度:目标方向差低于死区时保持直行(消除细碎抖弯)
+    from snake_pet.constants import MAX_TURN_ACTIVE, MIN_TURN_DEADZONE
+    s = Snake(400, 300, 0.0, B)
+    s.steer(0.02, MAX_TURN_ACTIVE)        # 2° < 死区 2.9°
+    assert s.heading_angle == 0.0
+    s.steer(0.08, MAX_TURN_ACTIVE)        # 超过死区正常转向
+    assert s.heading_angle > 0.0
+    # 连续闲逛中,角增量要么为 0 要么 ≥ 死区(不再有微碎转角)
+    random.seed(11)
+    s2 = Snake(750, 475, (1, 0), B)
+    prev = s2.heading_angle
+    micro = 0
+    for _ in range(600):
+        s2.move(QUIET_STEP, False, [], True)
+        d = abs(_wrap_pi(s2.heading_angle - prev))
+        if d > 1e-9:
+            assert d >= MIN_TURN_DEADZONE, d
+        else:
+            micro += 1
+        prev = s2.heading_angle
+    assert micro > 0  # 死区确实让部分帧保持直行
+
+
+def test_initial_body_start_v51():
+    # v5.1 初始体长加长为 8 节(app 层);隔离存档目录避免读到已有存档
+    import os
+    from snake_pet.constants import BODY_START_SEG
+    from snake_pet.app import SnakePet as App
+    from snake_pet.config import load_config
+    random.seed(6)
+    home = os.path.join(os.path.dirname(__file__), '_tmp_home_test')
+    os.makedirs(home, exist_ok=True)
+    old = os.environ.get('SNAKEPET_HOME')
+    os.environ['SNAKEPET_HOME'] = home
+    try:
+        cfg = load_config()
+        cfg['autostart'] = False
+        app = App(cfg, headless=True)
+        assert app.snake.body_len == SEG * BODY_START_SEG == SEG * 8
+        app.quit()
+    finally:
+        if old is None:
+            os.environ.pop('SNAKEPET_HOME', None)
+        else:
+            os.environ['SNAKEPET_HOME'] = old
+
+
 def test_head_starts_at_spawn():
     s = Snake(432, 543, (1, 0), B)
     (hx, hy) = s.head()

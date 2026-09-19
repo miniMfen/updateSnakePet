@@ -19,7 +19,7 @@ MAX_PATH = 6000       # 轨迹点上限
 PAD = 30              # 窗口外边距
 
 # ---- 帧率与步速 ----
-TICK_MS = 33          # 帧间隔(约 30fps)
+TICK_MS = 22          # 帧间隔(约 45fps 目标,v5.1 由 33 提升)
 QUIET_STEP = 1.6      # 安静档步速(px/帧)
 ACTIVE_STEP = 9.5     # 活跃档步速(px/帧)
 
@@ -29,6 +29,7 @@ ACTIVE_STEP = 9.5     # 活跃档步速(px/帧)
 # ---- P1 360° 转向参数(供调参) ----
 MAX_TURN_QUIET = 0.10        # 安静档每帧最大转角(rad)
 MAX_TURN_ACTIVE = 0.18       # 活跃档每帧最大转角(rad)
+MIN_TURN_DEADZONE = 0.05     # 最小转弯角度(rad,约 2.9°):低于它不转向,消除细碎抖弯
 WANDER_DRIFT_SIGMA = 0.03    # 闲逛每帧目标角高斯抖动(rad)
 WANDER_BIAS_INTERVAL = (90, 220)  # 趋势角重置周期(帧)
 WANDER_BIAS_RANGE = math.pi * 2 / 3  # 趋势角重置偏摆幅(±120°)
@@ -179,6 +180,7 @@ STAGE_TOTAL_EATEN = (20, 100)   # 幼蛇→成蛇→大蛇 的累计进食阈值
 STAGE_COEFF = (1.0, 1.15, 1.3)  # 体型系数(作用于头/身半径与帽位)
 STAGE_BASELINE_SEG = (5, 8, 12) # 各阶段体长基线(×SEG)
 STAGE_TRANSITION_SEC = 2.0      # 阶段切换平滑过渡时长(s)
+BODY_START_SEG = 8          # v5.1 初始体长(节,v4 为 5 节,用户反馈加长)
 FATNESS_WINDOW_SEC = 600        # 胖瘦滚动窗口(10min)
 FATNESS_PER_EAT = 0.05          # 每颗进食圆润增量
 FATNESS_MAX = 0.25              # 圆润上限(系数 1.0~1.25)
@@ -204,7 +206,12 @@ DEFAULT_CFG = {
     'no_spawn': True,
     'state': 'auto',
     'autostart': True,
+    'autosave': True,     # v5.1 记住小蛇(自动存档),菜单可关
     'theme': DEFAULT_THEME,
     'hat': 'auto',
     'ver': 5,
 }
+
+# ---- 渲染画质(v5.1) ----
+SS_PIXEL_BUDGET = 1100000  # 单帧渲染像素预算(超采样后),画质/帧率平衡点
+SS_MAX = 2.0               # 超采样上限(小画布 2× 抗锯齿)

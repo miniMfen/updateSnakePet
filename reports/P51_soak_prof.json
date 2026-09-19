@@ -1,0 +1,19 @@
+{
+  "seconds": 60,
+  "headless": false,
+  "fps_avg": 15.53,
+  "fps_min": 9.64,
+  "frame_ms_avg": 62.134,
+  "frame_ms_max": 103.69,
+  "mem_start_mb": 28.0,
+  "mem_end_mb": 40.1,
+  "mem_delta_mb": 12.1,
+  "exceptions": [],
+  "foods_eaten": 4,
+  "coils": 0,
+  "drags": 1,
+  "pets": 1,
+  "path_max": 1223,
+  "fx_max": 6,
+  "log_path": "D:\\aiCode\\professionalWork\\reports\\_tool_home\\snake_pet.log"
+}

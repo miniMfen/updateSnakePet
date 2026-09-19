@@ -11,9 +11,9 @@ from .constants import (ACTIVE_STEP, BODY_R, COIL_ABORT_GRACE_DIST, COIL_ABORT_G
                         COIL_GAP_FACTOR, COIL_MARGIN_FACTOR, COIL_MAX_SEGS_SMALL,
                         COIL_OMEGA_RANGE, COIL_OUT_RANGE, COIL_R0_RANGE, COIL_R_MIN_FACTOR,
                         EDGE_INFLUENCE, EDGE_PUSH_GAIN, EAT_RADIUS, GROW_PER_FOOD, MAX_PATH,
-                        MAX_TURN_ACTIVE, MAX_TURN_COIL, MAX_TURN_QUIET, QUIET_STEP, SEG,
-                        STALL_TIMEOUT, WANDER_BIAS_INTERVAL, WANDER_BIAS_RANGE,
-                        WANDER_DRIFT_SIGMA)
+                        MAX_TURN_ACTIVE, MAX_TURN_COIL, MAX_TURN_QUIET, MIN_TURN_DEADZONE,
+                        QUIET_STEP, SEG, STALL_TIMEOUT, WANDER_BIAS_INTERVAL,
+                        WANDER_BIAS_RANGE, WANDER_DRIFT_SIGMA)
 
 
 def wrap_pi(a):
@@ -175,6 +175,10 @@ class Snake:
     # ---- 转向器(P2 盘旋复用) ----
     def steer(self, target_angle, max_turn):
         d = wrap_pi(target_angle - self.heading_angle)
+        # [v5.1] 最小转弯角度死区:低于阈值的微调不转向,
+        # 消除细碎抖弯("尖锐量角器"观感),直线段更直
+        if abs(d) < MIN_TURN_DEADZONE:
+            return
         self.heading_angle += max(-max_turn, min(max_turn, d))
 
     # ---- 主步进 ----
