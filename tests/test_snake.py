@@ -106,13 +106,81 @@ def test_pos_head_is_zero_behind():
     assert abs(hx - px) < 1e-6 and abs(hy - py) < 1e-6
 
 
-def test_forced_dir_used_once():
+def test_forced_angle_used_once():
     s = Snake(800, 500, (1, 0), B)
-    s.forced_dir = (0, -1)
+    s.forced_angle = -math.pi / 2  # 目标角:向上
     s.move(QUIET_STEP, False, [], True)
     (hx, hy) = s.head()
     assert hy < 500
-    assert s.forced_dir is None
+    assert s.forced_angle is None
+
+
+def _wrap_pi(a):
+    while a > math.pi:
+        a -= 2 * math.pi
+    while a < -math.pi:
+        a += 2 * math.pi
+    return a
+
+
+def test_turn_continuity_t02():
+    # 3000 帧闲逛:逐帧角增量 ≤ 安静档上限,无 NaN,不出界
+    from snake_pet.constants import MAX_TURN_QUIET
+    random.seed(7)
+    s = Snake(750, 475, (1, 0), B)
+    prev = s.heading_angle
+    for _ in range(3000):
+        s.move(QUIET_STEP, False, [], True)
+        d = abs(_wrap_pi(s.heading_angle - prev))
+        assert d <= MAX_TURN_QUIET + 1e-6, d
+        assert not math.isnan(s.heading_angle)
+        (hx, hy) = s.head()
+        assert B[0] <= hx <= B[2] and B[1] <= hy <= B[3]
+        prev = s.heading_angle
+
+
+def test_chase_converge_800px_t03():
+    # 3 个固定种子:800px 外食物 30s(约900帧)内吃到
+    for seed in (1, 2, 3):
+        random.seed(seed)
+        s = Snake(200, 500, (1, 0), B)
+        foods = [(1000, 500)]
+        eaten = 0
+        for _ in range(900):
+            eaten += len(s.move(ACTIVE_STEP, True, foods, True))
+            if eaten:
+                break
+        assert eaten >= 1, '种子 %d 未在 900 帧内吃到 800px 外食物' % seed
+
+
+def test_corner_escape_t04():
+    # 四角与贴边中点各 1 次,活跃档 1s(30帧)内离开 60px 内推圈
+    starts = [(55, 55), (1495, 55), (55, 895), (1495, 895), (750, 55), (55, 475)]
+    for (cx, cy) in starts:
+        random.seed(99)
+        s = Snake(cx, cy, (1, 0), B)
+        escaped_at = None
+        for i in range(30):
+            s.move(ACTIVE_STEP, True, [], True)
+            (hx, hy) = s.head()
+            if min(hx - B[0], B[2] - hx, hy - B[1], B[3] - hy) > 60:
+                escaped_at = i + 1
+                break
+        assert escaped_at is not None, '起点 %s 未能在 30 帧内脱困, head=%s' % ((cx, cy), s.head())
+
+
+def test_avoid_rects_never_entered():
+    # 避让矩形挡在正前方:500 帧内头从不进入矩形内部
+    random.seed(5)
+    s = Snake(400, 475, (1, 0), B)
+    s.avoid_rects = [(700, 400, 900, 550)]
+    entered = 0
+    for _ in range(500):
+        s.move(ACTIVE_STEP, True, [], True)
+        (hx, hy) = s.head()
+        if 700 < hx < 900 and 400 < hy < 550:
+            entered += 1
+    assert entered == 0
 
 
 def test_eat_radius_constant():

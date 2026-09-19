@@ -12,8 +12,8 @@ from ctypes import wintypes
 
 from .behavior import BehaviorMixin
 from .config import base_dir, config_path, load_config, save_config
-from .constants import (ACTIVE_STEP, APP_NAME, GROW_PER_FOOD, MAX_PATH, MARGIN, QUIET_STEP,
-                        SATIETY_DECAY_PER_SEC, SATIETY_START, SEG, SPIN_DIRS, TICK_MS)
+from .constants import (ACTIVE_STEP, APP_NAME, GROW_PER_FOOD, MARGIN, MAX_PATH, QUIET_STEP,
+                        SATIETY_DECAY_PER_SEC, SATIETY_START, SEG, TICK_MS)
 from .fx import FxMixin
 from .menu import MenuMixin
 from .platform_win import (BITMAPINFOHEADER, HOOKPROC, MSLLHOOKSTRUCT, PM_REMOVE,
@@ -124,7 +124,7 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
             self.bounds = (bx0, by0, bx1, by1)
         sx = random.uniform(self.bounds[0], self.bounds[2])
         sy = random.uniform(self.bounds[1], self.bounds[3])
-        self.snake = Snake(sx, sy, random.choice(((1, 0), (-1, 0), (0, 1), (0, -1))), self.bounds)
+        self.snake = Snake(sx, sy, random.uniform(-math.pi, math.pi), self.bounds)
         if not headless and self._hwnd:
             sink_window_bottom(self._hwnd)
         if not headless and not self._start_hook():
@@ -323,9 +323,9 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
             self._self_check()
         step = ACTIVE_STEP if active else QUIET_STEP
         if self._spin > 0:
-            self._spin = min(self._spin, 60)
             self._spin -= 1
-            self.snake.forced_dir = SPIN_DIRS[self._spin % len(SPIN_DIRS)]
+            # [P1] v4 原地打转兼容层:每帧连续自转 45°(P2 分层盘旋将整体替换本块)
+            self.snake.forced_angle = self.snake.heading_angle + math.pi / 4
         if active and self.foods and self._break_chase <= 0:
             (hx, hy) = self.snake.head()
             f0 = min(self.foods, key=lambda f: (f['x'] - hx) ** 2 + (f['y'] - hy) ** 2)

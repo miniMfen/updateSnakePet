@@ -37,6 +37,7 @@ def run_soak(seconds, headless=False, out=None):
     def counted_on_eat():
         nonlocal foods_eaten
         foods_eaten += 1
+        logging.info('soak 追食: 第 %d 次吃到食物 (body_len=%.0f)', foods_eaten, app.snake.body_len)
         orig_on_eat()
 
     app._on_eat = counted_on_eat
@@ -124,7 +125,7 @@ def run_probe(outdir):
     random.seed(11)
     for _ in range(120):
         app.snake.move(QUIET_STEP, False, [], True)
-    snap('游动', '安静档四方向闲逛后的身体形态')
+    snap('游动', '安静档 360° 闲逛后的身体形态')
 
     # 2 追食:活跃档朝食物追一段
     random.seed(22)

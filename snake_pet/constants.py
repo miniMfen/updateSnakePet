@@ -1,4 +1,5 @@
 '''常量表 —— 与 00_BASELINE §12 逐一对齐(P0 重建, 默认值保持不变)'''
+import math
 
 APP_NAME = 'SnakePet'
 AUTOSTART_NAME = 'SnakePet'
@@ -22,8 +23,18 @@ TICK_MS = 33          # 帧间隔(约 30fps)
 QUIET_STEP = 1.6      # 安静档步速(px/帧)
 ACTIVE_STEP = 9.5     # 活跃档步速(px/帧)
 
-# v4 四方向格点移动(v5-P1 将替换为连续角度; P0 原样保留)
-DIRS = ((1, 0), (-1, 0), (0, 1), (0, -1))
+# v4 的 DIRS 四方向格点移动与 SPIN_DIRS 8 方向表已在 P1 移除,
+# 由连续角度转向(heading_angle + steer)替代;盘旋兼容层见 app._step。
+
+# ---- P1 360° 转向参数(供调参) ----
+MAX_TURN_QUIET = 0.10        # 安静档每帧最大转角(rad)
+MAX_TURN_ACTIVE = 0.18       # 活跃档每帧最大转角(rad)
+WANDER_DRIFT_SIGMA = 0.03    # 闲逛每帧目标角高斯抖动(rad)
+WANDER_BIAS_INTERVAL = (90, 220)  # 趋势角重置周期(帧)
+WANDER_BIAS_RANGE = math.pi * 2 / 3  # 趋势角重置偏摆幅(±120°)
+EDGE_INFLUENCE = 60          # 边界内推起始距离(px)
+EDGE_PUSH_GAIN = 1.6         # 内推场增益(越贴边转得越急)
+STALL_TIMEOUT = 60           # 追食卡死判定(帧)
 
 # ---- 经典绿系配色(v5-P3 作为默认主题) ----
 C_BODY = ((155, 232, 159), (111, 217, 122), (85, 201, 107), (67, 186, 94))
@@ -52,9 +63,6 @@ FX_COLORS = ((255, 143, 177), (255, 209, 102), (127, 216, 255), (184, 242, 200),
 C_CAP = (139, 130, 226, 255)
 C_CAP_DARK = (111, 102, 205, 255)
 C_CAP_EDGE = C_CAP_DARK
-
-# v4 原地打转 8 方向表(v5-P2 分层盘旋整体替换, P0 保留兼容)
-SPIN_DIRS = ((1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1))
 
 # ---- 饱食度与心情 ----
 SATIETY_MAX = 100
