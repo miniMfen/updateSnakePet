@@ -8,3 +8,6 @@ dist/*.egg-info/
 snake_pet_config.json
 pet_state.json
 reports/_tmp/
+reports/P0_parity_shot1.png
+reports/P0_parity_shot2.png
+reports/P7_live.png

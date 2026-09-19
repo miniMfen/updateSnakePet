@@ -2,8 +2,8 @@
 
 日期：2026-09-19。方式：原版 `Desktop\snakePet\SnakePet.exe`（v4）与重建版 v5（`python run_pet.py`）同屏并行运行约 80 秒，屏幕截图两份：
 
-- `reports/P0_parity_shot1.png`（15:28，双蛇同屏可见：左上 v4 原版，右侧 v5 重建版）
-- `reports/P0_parity_shot2.png`（15:29，同上）
+- （截图含用户桌面隐私信息，已从版本库移除，仅本地保留）
+- 
 
 ## 对照结论
 
