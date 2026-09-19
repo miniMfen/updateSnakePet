@@ -27,10 +27,11 @@ ACTIVE_STEP = 9.5     # 活跃档步速(px/帧)
 # 由连续角度转向(heading_angle + steer)与分层盘旋(CoilPlan)替代。
 
 # ---- P1 360° 转向参数(供调参) ----
-MAX_TURN_QUIET = 0.10        # 安静档每帧最大转角(rad)
-MAX_TURN_ACTIVE = 0.18       # 活跃档每帧最大转角(rad)
-MIN_TURN_DEADZONE = 0.05     # 最小转弯角度(rad,约 2.9°):低于它不转向,消除细碎抖弯
-WANDER_DRIFT_SIGMA = 0.03    # 闲逛每帧目标角高斯抖动(rad)
+# 转弯半径 = 步速 / 每帧转角:v5.1.1 调低转角使弧线更大更圆滑(参考贪吃蛇网游的顺滑弯)
+MAX_TURN_QUIET = 0.045       # 安静档每帧最大转角(rad,半径≈36px)
+MAX_TURN_ACTIVE = 0.095      # 活跃档每帧最大转角(rad,半径≈100px)
+MIN_TURN_DEADZONE = 0.06     # 最小转弯角度(rad,约 3.4°):低于它不转向,消除细碎抖弯
+WANDER_DRIFT_SIGMA = 0.016   # 闲逛每帧目标角高斯抖动(rad,v5.1.1 调低更顺滑)
 WANDER_BIAS_INTERVAL = (90, 220)  # 趋势角重置周期(帧)
 WANDER_BIAS_RANGE = math.pi * 2 / 3  # 趋势角重置偏摆幅(±120°)
 EDGE_INFLUENCE = 60          # 边界内推起始距离(px)

@@ -359,12 +359,11 @@ class Snake:
         return math.atan2(tvy, tvx)
 
     def _avoid_steer(self, hx, hy, step, target):
-        '''前方探测点落在避让矩形内 → 向可通行侧偏转(±45°起,记边防抖);
-        找到合法方向后同步闲逛目标角,避免下一帧又转回障碍'''
+        '''前方探测点落在避让矩形内 → 向可通行侧偏转(±60°起,记边防抖);
+        偏转角与转弯半径匹配(半径大需要更大的预先偏转);找到后同步闲逛目标角'''
         if self._probe_ok(hx, hy, target, step):
             return target
-        for off in (math.pi / 6, math.pi / 4, math.pi / 3, math.pi / 2,
-                    math.pi * 2 / 3, math.pi * 3 / 4):
+        for off in (math.pi / 3, math.pi / 2, math.pi * 2 / 3, math.pi * 5 / 6):
             for sgn in (self._avoid_side, -self._avoid_side):
                 a = target + sgn * off
                 if self._probe_ok(hx, hy, a, step):
@@ -374,13 +373,19 @@ class Snake:
         return target
 
     def _lookahead(self, step):
-        '''前方探测距离:步速 3 倍,安静档下限 60px 保证提前转弯'''
-        return max(step * 3, 60)
+        '''前方探测距离:与转弯半径匹配(半径=步速/转速),保证转得过来'''
+        far = step * 18  # 活跃档:9.5×18≈170px ≈ 1.7×转弯半径
+        near = step * 6
+        return max(far if step > 5 else near, 60)
 
     def _probe_ok(self, hx, hy, angle, step):
-        '''双距离探测(60px 与 120px),对"墙"状障碍提前预警'''
+        '''沿线多点探测(每约 85px 一站,直到 2× 前瞻),防止陡行进时大步长
+        跳过小障碍("穿隧"漏检)'''
         d0 = self._lookahead(step)
-        for d in (d0, d0 * 2):
+        span = d0 * 2
+        n = max(2, int(span / 85))
+        for k in range(1, n + 1):
+            d = span * k / n
             if not self._ok(hx + math.cos(angle) * d, hy + math.sin(angle) * d):
                 return False
         return True

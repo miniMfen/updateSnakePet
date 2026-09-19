@@ -153,12 +153,42 @@ def render_builtin_hat(hat_id, width):
 
 class HatRenderer:
     '''帽子渲染:贴图加载/旋转/缩放缓存,兜底切换。
-    P5.1:锚定改为「佩戴线」模式——pivot 指定贴图内作为佩戴点的位置(比例),
-    该点精确对齐头上的锚点;经两次旋转(expand)后仍追踪其位置,逐顶可校准。'''
+    锚定用「佩戴线」模式:.pivot 优先;未指定时自动检测——取贴图下部最宽一行的
+    中心作为佩戴点(帽沿/帽底),该点对齐头上锚点,保证帽子"坐在"头上不悬空。'''
 
     def __init__(self):
         self.registry = load_registry()
         self._cache = {}
+        self._pivot_cache = {}
+
+    @staticmethod
+    def _auto_pivot(im):
+        '''佩戴线自动检测:下部 60% 内不透明像素最多的一行,取该行不透明段中心'''
+        alpha = im.getchannel('A')
+        w, h = im.size
+        px = alpha.load()
+        best_row, best_cnt, best_cx = h - 1, -1, w / 2.0
+        y0 = int(h * 0.4)
+        for y in range(y0, h):
+            cnt = 0
+            sx = 0.0
+            for x in range(w):
+                if px[x, y] > 60:
+                    cnt += 1
+                    sx += x
+            if cnt > best_cnt:
+                best_cnt = cnt
+                best_row = y
+                best_cx = sx / cnt if cnt else w / 2.0
+        return (best_cx / w, (best_row + 1) / h)
+
+    def _pivot_of(self, hat_id, im):
+        pv = self.registry.get(hat_id, {}).get('pivot')
+        if pv:
+            return (float(pv[0]), float(pv[1]))
+        if hat_id not in self._pivot_cache:
+            self._pivot_cache[hat_id] = self._auto_pivot(im)
+        return self._pivot_cache[hat_id]
 
     @staticmethod
     def _rot_point(p, c, angle_deg, src_size, dst_size):
@@ -172,12 +202,11 @@ class HatRenderer:
         return (nx + c[0] + d[0], ny + c[1] + d[1])
 
     def get(self, hat_id, R, theta):
-        '''返回 (旋转后贴图, pivot在贴图内的x, pivot在贴图内的y);无法渲染返回 None'''
+        '''返回 (旋转后贴图, pivot在贴图内的x, pivot在贴图内的y, 锚点x, 锚点y);失败返回 None'''
         meta = self.registry.get(hat_id)
         if meta is None:
             return None
         base = float(meta.get('base_offset_deg', 0))
-        pivot = tuple(meta.get('pivot', [0.5, 1.0]))
         width = max(12, int(2 * R * float(meta.get('scale', 1.0))))
         theta_deg = round(math.degrees(theta)) % 360
         key = (hat_id, width, theta_deg)
@@ -186,9 +215,11 @@ class HatRenderer:
         spr = load_hat_image(hat_id)
         if spr is None:
             spr = render_builtin_hat(meta.get('builtin_fallback', hat_id), width)
+            pivot = tuple(meta.get('pivot', [0.5, 1.0]))
         else:
             ratio = spr.height / max(1, spr.width)
             spr = spr.resize((width, max(1, int(width * ratio))), Image.LANCZOS)
+            pivot = self._pivot_of(hat_id, spr)
         # 旋转 1:按画稿基准角扶正;旋转 2:随头朝向
         spr1 = spr.rotate(-base, resample=Image.BICUBIC, expand=True)
         spr2 = spr1.rotate(-theta_deg, resample=Image.BICUBIC, expand=True)

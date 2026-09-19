@@ -253,12 +253,18 @@ class RenderMixin:
                                 continue
             out.append((x, y, dist))
             i += 1
-        return out
+        # v5.1.1:圆弧替换可能跳过路径末尾原始点,补上真实头端点保证衔接
+        if out and (out[-1][0] != raw[-1][0] or out[-1][1] != raw[-1][1]):
+            out.append((raw[-1][0], raw[-1][1], max(raw[-1][2], out[-1][2] + 2.0)))
+        # v5.1.1:滑窗平滑,消除小转角折点的细小扭动(丝滑弯线)
+        return self._smooth_path(out)
 
     def _sample_body(self, rp, d0, step, body_len):
-        '''沿平滑轨迹按弧长采样身体点(世界坐标), 返回点列表'''
+        '''沿平滑轨迹按弧长采样身体点(世界坐标), 返回点列表。
+        v5.1.1:身体长超过轨迹 XY 弧长时(补长被边界钳制/起步阶段),
+        采样起点钳到路径起点——身体铺满全部轨迹,保证与头部衔接不脱节'''
         L = rp[-1][2]
-        lo = L - body_len
+        lo = max(rp[0][2], L - body_len)
         hi = L - d0
         out = []
         m = len(rp)
@@ -276,9 +282,20 @@ class RenderMixin:
                 i += 1
                 continue
             t = (d - p[2]) / span
-            if t < 0 or t > 1:
-                i += 1
-                continue
+            # v5.1.1:微小幅差(浮点/重算噪声)钳到段端,而不是跳过——
+            # 否则补长堆积点的亚像素抖动会让整条身体采样为空
+            if t < 0:
+                if t > -0.5:
+                    t = 0.0
+                else:
+                    i += 1
+                    continue
+            if t > 1:
+                if t < 1.5:
+                    t = 1.0
+                else:
+                    i += 1
+                    continue
             out.append((p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t))
             d += step
         return out
@@ -311,9 +328,52 @@ class RenderMixin:
         return pts
 
     # ---- 蛇身七层绘制(P3):shadow/outline/fill/pattern/belly/head/hat ----
+    @staticmethod
+    def _smooth_path(pts, half=26.0, end_keep=30.0):
+        '''v5.1.1 路径平滑:按弧长 ±half 窗口对顶点做滑动平均,消除小转角折点
+        造成的"不平整路面"式细小扭动;两端窗口渐缩(end_keep)保证头尾贴合;
+        平滑后按新几何重算弧长(单调)。双指针实现, O(n)。'''
+        n = len(pts)
+        if n < 7:
+            return pts
+        dists = [p[2] for p in pts]
+        # dist 单调化(弧线插入的 dd 可能轻微超过后续点,防止窗口计算出负 keep)
+        for i in range(1, n):
+            if dists[i] < dists[i - 1]:
+                dists[i] = dists[i - 1]
+        xs = [p[0] for p in pts]
+        ys = [p[1] for p in pts]
+        d_last = dists[-1]
+        out = []
+        j = 0
+        k = 0
+        for i in range(n):
+            while j < i and dists[i] - dists[j] > half:
+                j += 1
+            while k + 1 < n and dists[k] - dists[i] < half:
+                k += 1
+            sx = sy = 0.0
+            for t in range(j, k + 1):
+                sx += xs[t]
+                sy += ys[t]
+            cnt = k - j + 1
+            d_head = d_last - dists[i]
+            d_tail = dists[i] - dists[0]
+            # 端部(end_keep 内)保持原位(keep→1=不平滑),中段完全平滑(keep→0)
+            smooth = min(1.0, min(d_head, d_tail) / end_keep) if end_keep > 0 else 1.0
+            keep = 1.0 - smooth
+            out.append((xs[i] * keep + sx / cnt * (1 - keep),
+                        ys[i] * keep + sy / cnt * (1 - keep)))
+        res = [(out[0][0], out[0][1], 0.0)]
+        acc = 0.0
+        for i in range(1, n):
+            acc += math.hypot(out[i][0] - out[i - 1][0], out[i][1] - out[i - 1][1])
+            res.append((out[i][0], out[i][1], acc))
+        return res
+
     def _draw_snake(self, d, snake, ss, wx, wy):
         th = self._theme()
-        d0 = HEAD_R * 1.35
+        d0 = HEAD_R * 1.1   # v5.1.1:身体更深地探入头下,保证衔接不脱节
         step = 5 if snake.body_len <= 1200 else 8
         rp = self._build_render_path(snake)
         pts = self._sample_body(rp, d0, step, snake.body_len)
@@ -388,19 +448,36 @@ class RenderMixin:
             d.ellipse([x - r, y - r, x + r, y + r], fill=col + (255,))
 
     def _draw_belly_stripe(self, d, loc, rad, ss, th):
-        '''第 4 层:腹部浅色带(沿身体屏幕下侧 40% 半径宽)'''
+        '''第 4 层:腹部浅色带(沿身体屏幕下侧 40% 半径宽)。
+        v5.1.1 改用带 joint 的曲线描线,消除圆点链的波浪边'''
         tans = self._body_tangents(loc)
-        belly = th['belly']
+        belly = th['belly'] + (255,)
+        stripe_pts = []
+        widths = []
         for (x, y), r, (tx, ty) in zip(loc, rad, tans):
             nx, ny = -ty, tx
             if ny < 0:              # 取指向屏幕下侧的法向
                 nx, ny = -nx, -ny
             if abs(ny) < 0.3:       # 近垂直段取右侧,保持连贯
                 nx, ny = ty, -tx
-            bx = x + nx * r * 0.42
-            by = y + ny * r * 0.42
-            br = max(1.2 * ss, r * 0.40)
-            d.ellipse([bx - br, by - br, bx + br, by + br], fill=belly + (255,))
+            stripe_pts.append((x + nx * r * 0.42, y + ny * r * 0.42))
+            widths.append(max(2, int(2 * r * 0.40)))
+        if len(stripe_pts) < 2:
+            return
+        # 分块单次描线(joint='curve' 需在单次调用内才平滑),块宽取块内平均,块间共享端点
+        chunk = 8
+        for start in range(0, len(stripe_pts) - 1, chunk):
+            end = min(len(stripe_pts) - 1, start + chunk)
+            seg = stripe_pts[start:end + 1]
+            if len(seg) < 2:
+                continue
+            w = max(2, int((widths[start] + widths[end]) / 2))
+            d.line(seg, fill=belly, width=w, joint='curve')
+        # 端头圆帽,避免起止端平切
+        for idx in (0, len(stripe_pts) - 1):
+            (sx, sy) = stripe_pts[idx]
+            r_end = widths[idx] / 2.0
+            d.ellipse([sx - r_end, sy - r_end, sx + r_end, sy + r_end], fill=belly)
 
     def _draw_body_pattern(self, d, loc, rad, ss, th):
         '''第 5 层:背部菱形斑(每 PATTERN_EVERY 采样节一枚,随身体半径缩放)'''

@@ -5,7 +5,7 @@ import random
 import pytest
 
 from snake_pet.constants import (ACTIVE_STEP, BODY_MAX, BODY_MIN, EAT_RADIUS, GROW_PER_FOOD,
-                                 MAX_PATH, QUIET_STEP, SEG)
+                                 MAX_PATH, MAX_TURN_QUIET, QUIET_STEP, SEG)
 from snake_pet.snake import Snake
 
 B = (50, 50, 1500, 900)
@@ -154,19 +154,19 @@ def test_chase_converge_800px_t03():
 
 
 def test_corner_escape_t04():
-    # 四角与贴边中点各 1 次,活跃档 1s(30帧)内离开 60px 内推圈
+    # 四角与贴边中点各 1 次,活跃档 1s(45 帧@22ms)内离开 60px 内推圈
     starts = [(55, 55), (1495, 55), (55, 895), (1495, 895), (750, 55), (55, 475)]
     for (cx, cy) in starts:
         random.seed(99)
         s = Snake(cx, cy, (1, 0), B)
         escaped_at = None
-        for i in range(30):
+        for i in range(45):
             s.move(ACTIVE_STEP, True, [], True)
             (hx, hy) = s.head()
             if min(hx - B[0], B[2] - hx, hy - B[1], B[3] - hy) > 60:
                 escaped_at = i + 1
                 break
-        assert escaped_at is not None, '起点 %s 未能在 30 帧内脱困, head=%s' % ((cx, cy), s.head())
+        assert escaped_at is not None, '起点 %s 未能在 45 帧内脱困, head=%s' % ((cx, cy), s.head())
 
 
 def test_avoid_rects_never_entered():
@@ -189,27 +189,31 @@ def test_eat_radius_constant():
 
 
 def test_min_turn_deadzone_v51():
-    # v5.1 最小转弯角度:目标方向差低于死区时保持直行(消除细碎抖弯)
+    # v5.1 最小转弯角度:目标方向差低于死区时保持直行(消除细碎抖弯);
+    # 大角度趋势变化则连续圆弧转向(每帧增量 ≤ 档位上限)
     from snake_pet.constants import MAX_TURN_ACTIVE, MIN_TURN_DEADZONE
     s = Snake(400, 300, 0.0, B)
-    s.steer(0.02, MAX_TURN_ACTIVE)        # 2° < 死区 2.9°
+    s.steer(0.02, MAX_TURN_ACTIVE)        # 2° < 死区 3.4°
     assert s.heading_angle == 0.0
     s.steer(0.08, MAX_TURN_ACTIVE)        # 超过死区正常转向
     assert s.heading_angle > 0.0
-    # 连续闲逛中,角增量要么为 0 要么 ≥ 死区(不再有微碎转角)
+    # 连续闲逛:角增量要么为 0(直行)要么 ≤ 上限(圆弧),且无高频正反抖动
     random.seed(11)
     s2 = Snake(750, 475, (1, 0), B)
     prev = s2.heading_angle
-    micro = 0
-    for _ in range(600):
+    flips = 0
+    last_sign = 0
+    for _ in range(900):
         s2.move(QUIET_STEP, False, [], True)
-        d = abs(_wrap_pi(s2.heading_angle - prev))
-        if d > 1e-9:
-            assert d >= MIN_TURN_DEADZONE, d
-        else:
-            micro += 1
+        d = s2.heading_angle - prev
+        assert abs(d) <= MAX_TURN_QUIET + 1e-9
+        if abs(d) > 1e-9:
+            sign = 1 if d > 0 else -1
+            if last_sign and sign != last_sign:
+                flips += 1
+            last_sign = sign
         prev = s2.heading_angle
-    assert micro > 0  # 死区确实让部分帧保持直行
+    assert flips < 60  # 转向方向较少来回翻(配合路径平滑,顺滑)
 
 
 def test_initial_body_start_v51():

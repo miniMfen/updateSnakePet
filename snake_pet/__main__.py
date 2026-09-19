@@ -158,7 +158,7 @@ def run_soak(seconds, headless=False, out=None):
 
 
 def run_probe(outdir):
-    '''确定性种子渲染代表帧 PNG + probe_index.json'''
+    '''确定性种子渲染代表帧 PNG + probe_index.json(独立存档,不做自动存档)'''
     import logging
     _isolate_tool_home()
     logging.basicConfig(level=logging.WARNING)
@@ -166,6 +166,7 @@ def run_probe(outdir):
     random.seed(20260919)
     cfg = load_config()
     cfg['autostart'] = False
+    cfg['autosave'] = False
     app = SnakePet(cfg, headless=True)
     b = app.bounds
     scenes = []
