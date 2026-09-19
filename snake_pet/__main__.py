@@ -110,6 +110,10 @@ def run_soak(seconds, headless=False, out=None):
             for _ in range(random.randint(1, 2)):
                 if len(app.foods) < MAX_FOODS:
                     app._spawn_food(random.uniform(bx0, bx1), random.uniform(by0, by1))
+            if now - t0 > seconds * 0.5:
+                # soak 后半段保持低饱食度,让消化路径可观测(G6-5)
+                app.satiety = min(app.satiety, 28.0)
+                logging.info('soak 消化观察: satiety 压至 %.1f', app.satiety)
         time.sleep(0.002)
     elapsed = max(1e-6, time.monotonic() - t0)
     mem_end = working_set_mb()

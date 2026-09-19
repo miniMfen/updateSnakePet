@@ -10,7 +10,7 @@ def test_defaults_when_missing(tmp_path):
     p = str(tmp_path / 'cfg.json')
     cfg = load_config(p)
     assert cfg == DEFAULT_CFG
-    assert cfg['no_spawn'] is True and cfg['ver'] == 2
+    assert cfg['no_spawn'] is True and cfg['ver'] == 5
 
 
 def test_roundtrip(tmp_path):
@@ -28,8 +28,21 @@ def test_migration_from_ver1(tmp_path):
     with open(p, 'w', encoding='utf-8') as f:
         json.dump({'ver': 1, 'no_spawn': False, 'no_eat': False}, f)
     cfg = load_config(p)
-    assert cfg['ver'] == 2
-    assert cfg['no_spawn'] is True  # v1 迁移强制 no_spawn=True
+    assert cfg['ver'] == 5                      # P6 迁移链 2→5
+    assert cfg['no_spawn'] is True              # v1 迁移强制 no_spawn=True(AC-F6-7)
+    assert cfg['hat'] == 'auto' and cfg['theme'] == 'jade'  # 新字段补齐
+
+
+def test_migration_from_v4_config(tmp_path):
+    # v4 旧配置(ver=2)读入:既有字段不丢,新字段补齐
+    p = str(tmp_path / 'cfg.json')
+    with open(p, 'w', encoding='utf-8') as f:
+        json.dump({'ver': 2, 'no_spawn': True, 'no_eat': True, 'state': 'quiet',
+                   'autostart': False}, f)
+    cfg = load_config(p)
+    assert cfg['no_spawn'] is True and cfg['no_eat'] is True
+    assert cfg['state'] == 'quiet' and cfg['autostart'] is False
+    assert cfg['hat'] == 'auto' and cfg['theme'] == 'jade' and cfg['ver'] == 5
 
 
 def test_corrupt_json_falls_back(tmp_path):

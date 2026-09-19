@@ -36,8 +36,8 @@ def config_path():
 
 
 def load_config(path=None):
-    '''读取配置;ver<2 触发迁移(强制 no_spawn=True 后置 ver=2);损坏文件回退默认值;
-    非法帽子值回落 auto(P4)'''
+    '''读取配置;迁移链 ver<5 → 补 hat/theme 等新字段并置 ver=5
+    (v2 语义 no_spawn=True 保持);损坏文件回退默认值;非法帽子值回落 auto'''
     from .hats import DEFAULT_REGISTRY
     cfg = dict(DEFAULT_CFG)
     p = path or config_path()
@@ -45,10 +45,13 @@ def load_config(path=None):
         with open(p, 'r', encoding='utf-8') as f:
             data = json.load(f)
         if isinstance(data, dict):
-            if data.get('ver', 0) < 2:
+            if data.get('ver', 0) < 5:
                 data = dict(data)
-                data['no_spawn'] = True
-                data['ver'] = 2
+                if data.get('ver', 0) < 2:
+                    data['no_spawn'] = True   # v1→v2 迁移语义保持(AC-F6-7)
+                data.setdefault('hat', 'auto')     # P4
+                data.setdefault('theme', 'jade')   # P6 皮肤选择
+                data['ver'] = 5
         cfg.update(data)
         if cfg.get('hat') not in ('auto', 'none') and cfg.get('hat') not in DEFAULT_REGISTRY:
             cfg['hat'] = 'auto'

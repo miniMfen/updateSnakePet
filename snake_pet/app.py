@@ -12,10 +12,12 @@ from ctypes import wintypes
 
 from .behavior import BehaviorMixin
 from .config import base_dir, config_path, load_config, save_config
-from .constants import (ACTIVE_STEP, APP_NAME, FX_COLORS, GROW_PER_FOOD, HEAD_R, MARGIN,
-                        MAX_PATH, QUIET_STEP, SATIETY_DECAY_PER_SEC, SATIETY_START, SEG,
-                        TONGUE_PERIOD, TICK_MS)
+from .constants import (ACHIEVEMENTS, ACTIVE_STEP, APP_NAME, FX_COLORS, GROW_PER_FOOD, HEAD_R,
+                        MARGIN, MAX_PATH, QUIET_STEP, SATIETY_DECAY_PER_SEC, SATIETY_START, SEG,
+                        SAVE_PERIOD_SEC, TONGUE_PERIOD, TICK_MS)
 from .fx import FxMixin
+from .growth import (Achievements, digest_step, fatness_of, load_pet_state, save_pet_state,
+                     stage_baseline, stage_coeff, stage_of)
 from .hats import HatRenderer
 from .interact import InteractSM, DRAG_MAX_STEP
 from .menu import MenuMixin
@@ -63,6 +65,12 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
         self._last_active = True   # 渲染投影层仅活跃档绘制
         self._squash = 0           # P5 放下挤压动画帧
         self._interact = InteractSM(None)  # P5 互动状态机(bounds 就绪后补)
+        self._stage_render = 1.0   # P6 平滑后的体型系数(渲染用)
+        self._eat_times = []       # P6 胖瘦滚动窗口(进食时间戳)
+        self._digest_fx_at = 0.0   # P6 消化粒子计时
+        self._ach = Achievements()
+        self._state_loaded = None
+        self._last_save = time.monotonic()
         self._idle_timer = random.randint(600, 1200)
         self._chase_stall = 0
         self._chase_min = 1e+09
@@ -134,6 +142,35 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
         sy = random.uniform(self.bounds[1], self.bounds[3])
         self.snake = Snake(sx, sy, random.uniform(-math.pi, math.pi), self.bounds)
         self._interact.bounds = self.bounds
+        # ---- P6 存档读取:位置/朝向/体长/饱食/计数/成就/皮肤 ----
+        self._state_loaded = load_pet_state()
+        st = self._state_loaded
+        if st is not None:
+            if st.get('pos'):
+                (px_, py_) = st['pos']
+                px_ = min(max(px_, self.bounds[0]), self.bounds[2])
+                py_ = min(max(py_, self.bounds[1]), self.bounds[3])
+                self.snake = Snake(px_, py_, float(st.get('heading', 0.0)), self.bounds,
+                                   body_len=max(float(st.get('body_len', SEG * 5)), 40.0))
+            self.snake.body_len = max(float(st.get('body_len', self.snake.body_len)), 40.0)
+            self.snake.ensure_path_len(self.snake.body_len + 40)
+            if st.get('satiety') is not None:
+                self.satiety = min(100.0, max(0.0, float(st['satiety'])))
+            if st.get('skin') and st.get('skin') in ('jade', 'classic', 'peach',
+                                                     'nightglow', 'clown'):
+                self.cfg['theme'] = st['skin']
+            if st.get('hat'):
+                self.cfg['hat'] = st['hat']
+            self._ach = Achievements(st['achievements'],
+                                     st.get('counters'),
+                                     st['counters'].get('days'))
+            self._eat_times = []
+            today = time.strftime('%Y-%m-%d')
+            self._ach.days.add(today)
+            for aid in self._ach.check():
+                logging.info('成就解锁(读档): %s', aid)
+        else:
+            self._ach.days.add(time.strftime('%Y-%m-%d'))
         if not headless and self._hwnd:
             sink_window_bottom(self._hwnd)
         if not headless and not self._start_hook():
@@ -193,11 +230,72 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
                                    self._hdc_mem, ctypes.byref(src), 0,
                                    ctypes.byref(_BLEND), ULW_ALPHA)
 
+    # ---- 养成(P6):消化/阶段/胖瘦/周期存档 ----
+    def _growth_step(self, active):
+        now = time.monotonic()
+        # 阶段系数平滑(≤2s 无跳变)
+        target = stage_coeff(stage_of(self._ach.counters.get('total_eaten', 0)))
+        self._stage_render += (target - self._stage_render) / 15.0
+        # 消化:satiety<40 时体长回落至阶段基线,伴淡绿消化粒子
+        baseline = stage_baseline(stage_of(self._ach.counters.get('total_eaten', 0)))
+        new_len = digest_step(self.snake.body_len, self.satiety, TICK_MS / 1000.0, baseline)
+        if new_len < self.snake.body_len - 1e-6:
+            self.snake.body_len = new_len
+            if now - self._digest_fx_at >= 3.0:
+                self._digest_fx_at = now
+                (tx, ty) = self.snake.pos(self.snake.body_len * 0.5)
+                self._spawn_fx('bfx', tx, ty, size=random.uniform(2.5, 4.5), max=32)
+                logging.info('消化中: body_len=%.0f 基线=%.0f', self.snake.body_len, baseline)
+        # 胖瘦滚动窗口
+        self._eat_times = [t for t in self._eat_times if now - t <= 600.0]
+        self.body_scale = fatness_of(self._eat_times, now)
+        # 周期存档(60s)
+        if now - self._last_save >= SAVE_PERIOD_SEC:
+            self._last_save = now
+            self.save_pet_state_now(reason='periodic')
+
+    def _pet_state(self):
+        (hx, hy) = self.snake.head()
+        return {
+            'pos': [hx, hy],
+            'heading': self.snake.heading_angle,
+            'body_len': self.snake.body_len,
+            'satiety': self.satiety,
+            'total_eaten': self._ach.counters.get('total_eaten', 0),
+            'affinity': self._interact.affinity,
+            'skin': self.cfg.get('theme', 'jade'),
+            'hat': self.cfg.get('hat', 'auto'),
+            'achievements': sorted(self._ach.unlocked),
+            'counters': {**self._ach.counters,
+                         'days': sorted(self._ach.days)},
+        }
+
+    def save_pet_state_now(self, reason='manual'):
+        self._last_save = time.monotonic()
+        if save_pet_state(self._pet_state()):
+            logging.info('存档已保存(%s)', reason)
+
+    def _unlock_achievements(self):
+        news = self._ach.check()
+        for aid in news:
+            name = dict((a, n) for (a, n, _d) in ACHIEVEMENTS).get(aid, aid)
+            self._spawn_bubble('成就解锁:%s!' % name)
+            (hx, hy) = self.snake.head()
+            for _ in range(4):
+                self._spawn_fx('star', hx + random.uniform(-22, 22), hy + random.uniform(-26, -2),
+                               size=random.uniform(3, 5), color=random.choice(FX_COLORS),
+                               max=30, seed=random.random())
+            logging.info('成就解锁: %s (%s)', aid, name)
+            self.save_pet_state_now(reason='achievement')
+        return news
+
     # ---- 互动(P5):状态机事件落地 ----
     def _consume_interact(self, now):
         self._interact.tick(now)
         for (ev, x, y) in self._interact.take_events():
             if ev == 'pet_done':
+                self._ach.counters['pet_count'] = self._ach.counters.get('pet_count', 0) + 1
+                self._unlock_achievements()
                 (hx, hy) = self.snake.head()
                 for _ in range(random.randint(3, 5)):
                     self._spawn_fx('heart', hx + random.uniform(-18, 18),
@@ -430,6 +528,7 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
             eaten = []      # 拎起中:头由 drag 事件驱动,自动位移暂停
         else:
             eaten = self.snake.move(step, active, pts, not self.cfg['no_eat'])
+        self._growth_step(active)
         for px, py in eaten:
             self._remove_food_at(px, py)
             self._on_eat()
@@ -579,6 +678,10 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
         if not self.headless:
             self._stop_hook()
         self._free_dib()
+        try:
+            self.save_pet_state_now(reason='quit')
+        except Exception as e:
+            logging.warning('退出存档失败: %r', e)
         if self._menu_hwnd:
             destroy_window(self._menu_hwnd)
             self._menu_hwnd = None

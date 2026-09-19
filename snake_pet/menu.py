@@ -7,7 +7,7 @@ import time
 from PIL import Image, ImageDraw
 
 from .config import save_config
-from .constants import BODY_MAX, BODY_MIN, SEG
+from .constants import BODY_MAX, BODY_MIN, SEG, SNAKE_THEMES
 from .hats import DEFAULT_REGISTRY as HAT_REGISTRY, HAT_IDS
 from .platform_win import blit_image_to_window, create_layered_window, show_window
 
@@ -17,9 +17,17 @@ class MenuMixin:
 
     @property
     def MENU_PH(self):
-        # 行数含:开关×3 + 状态 + 帽子(折两行) + 主题 + 卖萌 + 投喂 + 盘旋 + 长度 + 动作×2
-        nrows = 3 + 1 + 2 + 1 + 1 + 1 + 1 + 1 + 2
+        # 行数含:开关×3 + 状态 + 帽子(折两行) + 卖萌 + 皮肤 + 成就 + 投喂 + 盘旋 + 长度 + 动作×2
+        nrows = 3 + 1 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 2
         return self.MENU_PAD + self.MENU_HEAD + nrows * self.MENU_ROWH + self.MENU_PAD
+
+    def _skin_chip_box(self, i, y):
+        '''皮肤行第 i 枚 chip 的命中矩形(5 枚紧凑排布)'''
+        rowh = self.MENU_ROWH
+        pad = self.MENU_PAD
+        pitch = 46
+        cx = pad + i * pitch
+        return (cx, y + (rowh - 30) // 2, cx + 42, y + (rowh - 30) // 2 + 30)
 
     HAT_GRID_LINES = (('自动', '摘掉', '夜帽', '圣诞', '皇冠'),
                       ('学士', '礼帽', '棒球', '蝴蝶结'))
@@ -151,23 +159,35 @@ class MenuMixin:
                 self._menu_hits.append(self._hat_chip_box(col, line, y)
                                        + ((lambda v=name_of[nm]: self._set_hat(v)),))
         y += rowh * 2
-        from .constants import SNAKE_THEMES
-        cur_theme = self.cfg.get('theme') if self.cfg.get('theme') in [t['id'] for t in SNAKE_THEMES] else SNAKE_THEMES[0]['id']
-        theme_idx = [t['id'] for t in SNAKE_THEMES].index(cur_theme)
+        self._menu_rows.append({'kind': 'button', 'label': '卖萌一次…', 'y': y, 'h': rowh})
+        self._menu_hits.append((0, y, pw, y + rowh, (lambda: self._do_moe())))
+        y += rowh
+        # P6 皮肤行:5 套,未解锁灰显(点击提示解锁条件)
+        from .growth import skin_lock_hint
+        skin_ids = tuple(t['id'] for t in SNAKE_THEMES)
+        cur_skin = self.cfg.get('theme', skin_ids[0])
+        if cur_skin not in skin_ids:
+            cur_skin = skin_ids[0]
         self._menu_rows.append({
-            'kind': 'chips',
-            'label': '主题',
-            'chips': [(t['name'], i) for i, t in enumerate(SNAKE_THEMES)],
-            'active': theme_idx,
+            'kind': 'skingrid',
+            'label': '皮肤',
+            'chips': [(t['name'][:2], tid) for t, tid in zip(SNAKE_THEMES, skin_ids)],
+            'active': cur_skin,
             'y': y,
             'h': rowh,
         })
         for i, t in enumerate(SNAKE_THEMES):
-            self._menu_hits.append(self._chip_box(i, y)
-                                   + ((lambda tid=t['id']: self._set_theme(tid)),))
+            self._menu_hits.append(self._skin_chip_box(i, y)
+                                   + ((lambda idx=i: self._pick_skin(idx)),))
         y += rowh
-        self._menu_rows.append({'kind': 'button', 'label': '卖萌一次…', 'y': y, 'h': rowh})
-        self._menu_hits.append((0, y, pw, y + rowh, (lambda: self._do_moe())))
+        n_ach, tot_ach = self._ach.count()
+        self._menu_rows.append({
+            'kind': 'achievement',
+            'label': '成就 %d/%d' % (n_ach, tot_ach),
+            'y': y,
+            'h': rowh,
+        })
+        self._menu_hits.append((0, y, pw, y + rowh, (lambda: self._show_achievements())))
         y += rowh
         self._menu_rows.append({'kind': 'button', 'label': '投喂一个苹果', 'y': y, 'h': rowh,
                                 'style': 'teal'})
@@ -208,10 +228,30 @@ class MenuMixin:
         self._reopen_menu()
 
     def _set_theme(self, tid):
-        '''切换配色主题(P3;P6 扩展为解锁皮肤)并持久化'''
+        '''切换配色主题(P3;P6 起由皮肤行接管,保留兼容)'''
         self.cfg['theme'] = tid
         save_config(self.cfg)
         self._reopen_menu()
+
+    def _pick_skin(self, idx):
+        '''选择皮肤:未解锁则气泡提示门槛;已解锁则切换并持久化'''
+        from .constants import SNAKE_THEMES
+        from .growth import skin_lock_hint, skin_unlocked
+        t = SNAKE_THEMES[idx]
+        if not skin_unlocked(idx, self._ach.counters.get('total_eaten', 0)):
+            self._spawn_bubble(skin_lock_hint(idx) or '尚未解锁')
+            return
+        self.cfg['theme'] = t['id']
+        save_config(self.cfg)
+        self._reopen_menu()
+
+    def _show_achievements(self):
+        '''成就行点击:气泡播报最近解锁的 3 个成就名'''
+        names = self._ach.names()
+        if not names:
+            self._spawn_bubble('还没有成就,加油呀~')
+        else:
+            self._spawn_bubble('最近:' + '、'.join(names[-3:]))
 
     def _chip_box(self, i, y):
         '''第 i 个 chip 的命中矩形(与 _render_menu_image 的布局一致)'''
@@ -331,6 +371,36 @@ class MenuMixin:
                     d.rounded_rectangle([x0, yy0, x1, yy1], radius=9, fill=(255, 255, 255, 255),
                                         outline=(160, 170, 180, 255), width=2)
                     d.text((tx, ty), txt, font=f14, fill=(90, 100, 110, 255))
+                continue
+            if row['kind'] == 'skingrid':
+                lb = d.textbbox((0, 0), row['label'], font=f15)
+                d.text((pad, y0 + (row['h'] - lb[3] - lb[1]) // 2 - lb[1]), row['label'],
+                       font=f15, fill=(80, 90, 105, 255))
+                f13 = self._get_font(13)
+                from .growth import skin_unlocked
+                total_eaten = self._ach.counters.get('total_eaten', 0)
+                for i, (txt, tid) in enumerate(row['chips']):
+                    (x0, yy0, x1, yy1) = self._skin_chip_box(i, y0)
+                    on = tid == row['active']
+                    unlocked = skin_unlocked(i, total_eaten)
+                    cb = d.textbbox((0, 0), txt, font=f13)
+                    tw = cb[2] - cb[0]
+                    tx = x0 + (x1 - x0 - tw) // 2 - cb[0]
+                    ty = yy0 + (yy1 - yy0 - cb[3] - cb[1]) // 2 - cb[1]
+                    if on:
+                        d.rounded_rectangle([x0, yy0, x1, yy1], radius=9, fill=(110, 200, 120, 255))
+                        d.text((tx, ty), txt, font=f13, fill=(255, 255, 255, 255))
+                        continue
+                    fill = (255, 255, 255, 255) if unlocked else (225, 228, 232, 255)
+                    txt_col = (90, 100, 110, 255) if unlocked else (170, 176, 184, 255)
+                    d.rounded_rectangle([x0, yy0, x1, yy1], radius=9, fill=fill,
+                                        outline=(160, 170, 180, 255), width=2)
+                    d.text((tx, ty), txt, font=f13, fill=txt_col)
+                continue
+            if row['kind'] == 'achievement':
+                bb = d.textbbox((0, 0), row['label'], font=f15)
+                d.text((pad + 26, y0 + (row['h'] - bb[3] - bb[1]) // 2 - bb[1]), row['label'],
+                       font=f15, fill=(120, 100, 60, 255))
                 continue
             if row['kind'] == 'button':
                 x1 = pw - pad - 26

@@ -106,6 +106,34 @@ SNAKE_THEMES = (
         'mouth': (150, 80, 90),
         'tongue': (235, 90, 110),
     },
+    {
+        'id': 'nightglow', 'name': '夜光',
+        'body': ((70, 90, 120), (52, 72, 104), (40, 58, 90), (30, 44, 74)),
+        'head': (78, 98, 128),
+        'belly': (188, 214, 240),
+        'tail': (62, 82, 112),
+        'pattern': (120, 240, 200),
+        'pattern_alt': (200, 255, 240),
+        'outline': (18, 28, 48),
+        'pupil': (20, 24, 34),
+        'blush': (120, 150, 210),
+        'mouth': (150, 180, 220),
+        'tongue': (120, 200, 255),
+    },
+    {
+        'id': 'clown', 'name': '小丑',
+        'body': ((255, 170, 90), (248, 140, 70), (238, 110, 60), (220, 90, 52)),
+        'head': (255, 176, 96),
+        'belly': (255, 236, 210),
+        'tail': (250, 158, 84),
+        'pattern': (255, 255, 255),
+        'pattern_alt': (60, 60, 66),
+        'outline': (120, 62, 40),
+        'pupil': (50, 42, 40),
+        'blush': (255, 120, 110),
+        'mouth': (140, 70, 50),
+        'tongue': (240, 100, 110),
+    },
 )
 THEME_IDS = tuple(t['id'] for t in SNAKE_THEMES)
 THEME_NAMES = tuple(t['name'] for t in SNAKE_THEMES)
@@ -143,7 +171,34 @@ PATTERN_EVERY = 4           # 背部菱形斑间隔(采样节)
 TONGUE_PERIOD = (240, 420)  # 吐信周期(帧,约 4~7s)
 TONGUE_FRAMES = 8           # 吐信持续帧数
 
-# ---- 默认配置(ver=2 为 v4 迁移链末端, v5-P6 再延伸到 5) ----
+# ---- P6 养成数值表(与 tasks/P6_GROWTH.md §1 对应) ----
+DIGEST_PX_PER_SEC = 2       # 消化速率:body_len 每秒回落像素
+DIGEST_SATIETY_BELOW = 40   # 饱食度低于该值开始消化
+DIGEST_FX_EVERY_SEC = 3     # 消化粒子间隔(s)
+STAGE_TOTAL_EATEN = (20, 100)   # 幼蛇→成蛇→大蛇 的累计进食阈值
+STAGE_COEFF = (1.0, 1.15, 1.3)  # 体型系数(作用于头/身半径与帽位)
+STAGE_BASELINE_SEG = (5, 8, 12) # 各阶段体长基线(×SEG)
+STAGE_TRANSITION_SEC = 2.0      # 阶段切换平滑过渡时长(s)
+FATNESS_WINDOW_SEC = 600        # 胖瘦滚动窗口(10min)
+FATNESS_PER_EAT = 0.05          # 每颗进食圆润增量
+FATNESS_MAX = 0.25              # 圆润上限(系数 1.0~1.25)
+SKIN_UNLOCK_EATEN = (0, 10, 30, 60, 100)  # 各皮肤解锁门槛(累计进食)
+PET_STATE_FILE = 'pet_state.json'
+SAVE_PERIOD_SEC = 60            # 周期存档间隔(s)
+
+# ---- P6 成就定义(id, 名称, 描述) ----
+ACHIEVEMENTS = (
+    ('first_feed', '初来乍到', '第一次撒食'),
+    ('first_eat', '第一口', '第一次进食'),
+    ('eater10', '小吃货', '累计吃 10 颗'),
+    ('eater50', '干饭王', '累计吃 50 颗'),
+    ('eater100', '传奇', '累计吃 100 颗'),
+    ('seven_days', '七日之约', '累计运行跨 7 个自然日'),
+    ('coil10', '转圈圈', '盘旋 10 次'),
+    ('pet50', '摸头杀', '被抚摸 50 次'),
+)
+
+# ---- 默认配置(P6 迁移链末端 ver=5;v2/v3/v4 旧文件读入自动补齐) ----
 DEFAULT_CFG = {
     'no_eat': False,
     'no_spawn': True,
@@ -151,5 +206,5 @@ DEFAULT_CFG = {
     'autostart': True,
     'theme': DEFAULT_THEME,
     'hat': 'auto',
-    'ver': 2,
+    'ver': 5,
 }

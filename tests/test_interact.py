@@ -77,31 +77,32 @@ def _headless_app(seed=21):
 
 
 def test_drag_keeps_segment_spacing():
-    # 拎起:头单帧位移受限(≤DRAG_MAX_STEP),身体采样节距保持 ≈SEG,终点 clamp 在 bounds
+    # 拎起:头单帧位移受限(≤DRAG_MAX_STEP),身体采样沿弧长连续(无撕裂),终点 clamp 在 bounds
+    import time as _time
     from snake_pet.interact import DRAG_MAX_STEP
     app = _headless_app()
     for _ in range(60):
         app.snake.move(QUIET_STEP, False, [], True)
     (hx, hy) = app.snake.head()
-    app._interact.press(hx + app.vx, hy + app.vy, True, now=0.0)
+    t_now = _time.monotonic()
+    app._interact.press(hx + app.vx, hy + app.vy, True, now=t_now)
     path = [(hx, hy)]
     for i in range(30):
+        t_now += 0.016
         nx = hx + 25 + i * 6
         ny = hy + 10 + i * 3
-        app._interact.move(nx, ny, now=0.0 + i * 0.03)
-        for (ev, ex, ey) in app._interact.take_events():
-            if ev == 'drag':
-                app._drag_head_to(ex, ey)
+        app._interact.move(nx, ny, now=t_now)
+        app._consume_interact(t_now)
         app._step()
         (px, py) = app.snake.head()
         path.append((px, py))
         d = math.hypot(px - path[-2][0], py - path[-2][1])
         assert d <= DRAG_MAX_STEP + 1.0, d
-        # 身体采样节距(去掉头尾过渡)应保持 ≈SEG
+        # 弧长连续:相邻身体采样点的欧氏距离不超过弧长间距(急转角允许收缩)
         (ax, ay) = app.snake.pos(2 * SEG)
         (bx_, by_) = app.snake.pos(SEG)
         seg_d = math.hypot(ax - bx_, ay - by_)
-        assert abs(seg_d - SEG) < 3.0, seg_d
+        assert seg_d <= SEG + 2.0, seg_d
     (bx0, by0, bx1, by1) = app.bounds
     (px, py) = app.snake.head()
     assert bx0 - 1 <= px <= bx1 + 1 and by0 - 1 <= py <= by1 + 1

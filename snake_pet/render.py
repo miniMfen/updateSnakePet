@@ -320,9 +320,10 @@ class RenderMixin:
         n = len(loc)
 
         def taper(t):
-            # P3:锥形身体 头 1.0 → 尾 0.55(在 v4 wr 锥度基础上强化),body_scale 为 P6 胖瘦钩子
-            scale = getattr(self, 'body_scale', 1.0)
-            return max(4.0, BODY_R * (1.0 - (1.0 - TAPER_TAIL) * (t ** 0.9)) * scale)
+            # P3:锥形身体 头 1.0 → 尾 0.55;body_scale 为 P6 胖瘦,P6 体型系数作用于身半径
+            fat = getattr(self, 'body_scale', 1.0)
+            stage = getattr(self, '_stage_render', 1.0)
+            return max(4.0, BODY_R * (1.0 - (1.0 - TAPER_TAIL) * (t ** 0.9)) * fat * stage)
 
         rad = [taper(i / max(1, n - 1)) * ss for i in range(n)]
         if self.wag <= 0 and n >= 7:
@@ -421,7 +422,7 @@ class RenderMixin:
             (c, s) = (math.cos(a), math.sin(a))
             (ux, uy) = (ux * c - uy * s, ux * s + uy * c)
         ang = math.atan2(uy, ux)
-        R = HEAD_R * ss
+        R = HEAD_R * ss * getattr(self, '_stage_render', 1.0)  # P6 体型系数作用于头
         outline = th['outline']
         head_main = th['head']
         if self.flash > 0:
@@ -501,11 +502,11 @@ class RenderMixin:
         self._draw_hat_layer(img, hx, hy, ss, ang)
 
     def _draw_hat_layer(self, img, hx, hy, ss, ang):
-        '''第 7 层:帽子(P4)——随朝向旋转,贴图 + 内置兜底双通道'''
+        '''第 7 层:帽子(P4)——随朝向旋转,贴图 + 内置兜底双通道;帽位随体型系数'''
         hat_id = self._current_hat_id
         if hat_id is None:
             return
-        R = HEAD_R * ss
+        R = HEAD_R * ss * getattr(self, '_stage_render', 1.0)
         got = self._hat_renderer.get(hat_id, R, ang)
         if got is None:
             return

@@ -6,6 +6,7 @@ import time
 
 from .constants import (MAX_FOODS, MOOD_HAPPY, MOOD_HUNGRY, FX_COLORS, SATIETY_GAIN,
                         SATIETY_MAX)
+from .growth import stage_of
 
 
 class BehaviorMixin:
@@ -83,6 +84,8 @@ class BehaviorMixin:
             logging.info('盘旋取消:空间不足或体长过短')
             return
         self.snake.coil = plan
+        self._ach.counters['coil_count'] = self._ach.counters.get('coil_count', 0) + 1
+        self._unlock_achievements()
         (hx, hy) = self.snake.head()
         for _ in range(4):
             self._spawn_fx('star', hx + random.uniform(-24, 24), hy + random.uniform(-26, -2),
@@ -114,6 +117,13 @@ class BehaviorMixin:
         self.wag = 14
         (hx, hy) = self.snake.head()
         self._spawn_particles(hx, hy - 6, random.randint(3, 5))
+        # P6 养成计数与成就
+        self._ach.counters['total_eaten'] = self._ach.counters.get('total_eaten', 0) + 1
+        self._eat_times.append(time.monotonic())
+        self._unlock_achievements()
+        if self._ach.counters.get('stage_seen') != stage_of(self._ach.counters['total_eaten']):
+            self._ach.counters['stage_seen'] = stage_of(self._ach.counters['total_eaten'])
+            self.save_pet_state_now(reason='stage')
 
     def _spawn_zdan(self):
         '''睡觉 Z 弹幕:一条大 Z 从蛇头旁横向飘过画面(弹幕式)'''
@@ -160,6 +170,8 @@ class BehaviorMixin:
         if len(self.foods) >= MAX_FOODS:
             self.foods.pop(0)
         self.foods.append({'x': x, 'y': y})
+        self._ach.counters['total_feed'] = self._ach.counters.get('total_feed', 0) + 1
+        self._unlock_achievements()
         if self._is_sleeping():
             self._wake()
 
