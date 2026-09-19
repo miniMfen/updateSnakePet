@@ -44,6 +44,8 @@ def run_soak(seconds, headless=False, out=None):
     exceptions = []
     path_max = 0
     fx_max = 0
+    coils = 0
+    in_coil = False
     frame_ms = []
     frames = 0
     t0 = time.monotonic()
@@ -65,11 +67,19 @@ def run_soak(seconds, headless=False, out=None):
             frames += 1
             path_max = max(path_max, len(app.snake.path))
             fx_max = max(fx_max, len(app.fx))
+            if app.snake.coil is not None and not in_coil:
+                coils += 1
+                in_coil = True
+                logging.info('soak 盘旋: 第 %d 次盘旋开始', coils)
+            elif app.snake.coil is None:
+                in_coil = False
         if now >= next_food:
-            next_food = now + 3.0
-            if len(app.foods) < MAX_FOODS:
-                bx0, by0, bx1, by1 = app.bounds
-                app._spawn_food(random.uniform(bx0, bx1), random.uniform(by0, by1))
+            next_food = now + 25.0
+            # 爆发式撒食 1~2 颗(模拟用户点击),留出足够长的无食物窗口让空闲盘旋得以触发
+            bx0, by0, bx1, by1 = app.bounds
+            for _ in range(random.randint(1, 2)):
+                if len(app.foods) < MAX_FOODS:
+                    app._spawn_food(random.uniform(bx0, bx1), random.uniform(by0, by1))
         time.sleep(0.002)
     elapsed = max(1e-6, time.monotonic() - t0)
     mem_end = working_set_mb()
@@ -86,6 +96,7 @@ def run_soak(seconds, headless=False, out=None):
         'mem_delta_mb': round(mem_end - mem_start, 1),
         'exceptions': exceptions,
         'foods_eaten': foods_eaten,
+        'coils': coils,
         'path_max': path_max,
         'fx_max': fx_max,
         'log_path': log_path,
@@ -154,17 +165,26 @@ def run_probe(outdir):
         img.save(os.path.join(outdir, f'probe_{len(scenes) + 1:02d}_睡觉.png'))
         scenes.append({'scene': '睡觉', 'note': '闭眼+zzz+Z弹幕', 'files': [{'file': f'probe_{len(scenes) + 1:02d}_睡觉.png', 'size': list(img.size)}]})
 
-    # 5 盘旋(P0 暂用 v4 spin 占位,P2 替换为分层盘旋)
+    # 5 分层盘旋:触发真实盘旋并推进到盘踞段(多层同心圈)
     app.satiety = SATIETY_START
     app._sleep_since = None
+    app.foods = []
+    app.snake.body_len = SEG * 60          # 多层盘旋需要足够体长
+    app.snake.ensure_path_len(app.snake.body_len + 40)
+    app.wag = 0                            # 清掉场景3的摆尾,避免盘旋触发被守卫拦截
     random.seed(55)
-    for _ in range(80):
-        app.snake.move(QUIET_STEP, False, [], True)
-    app._do_idle()  # 三选一可能不是 spin, 强制置 spin
-    app._spin = 36
-    for _ in range(20):
+    for _ in range(10):
+        for _ in range(50):
+            app.snake.move(QUIET_STEP, False, [], True)
+        app._start_coil()
+        if app.snake.coil is not None:
+            break
+    assert app.snake.coil is not None, '盘旋计划未生成(空间/体长不可行)'
+    for _ in range(app.snake.coil.t_in + 20):
         app._step()
-    snap('盘旋占位', 'P2 将替换为阿基米德螺线分层盘旋')
+        if app.snake.coil is None:
+            break
+    snap('盘旋', '分层盘旋:盘入→盘踞的阿基米德螺线多层圈')
 
     # 6 夜帽:强制戴上
     app._hat_override = True

@@ -55,7 +55,6 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
         self.flash = 0
         self.wag = 0
         self.tilt = 0
-        self._spin = 0
         self._idle_timer = random.randint(600, 1200)
         self._chase_stall = 0
         self._chase_min = 1e+09
@@ -322,10 +321,7 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
             self._refresh_avoid()
             self._self_check()
         step = ACTIVE_STEP if active else QUIET_STEP
-        if self._spin > 0:
-            self._spin -= 1
-            # [P1] v4 原地打转兼容层:每帧连续自转 45°(P2 分层盘旋将整体替换本块)
-            self.snake.forced_angle = self.snake.heading_angle + math.pi / 4
+        self._coil_step(active)
         if active and self.foods and self._break_chase <= 0:
             (hx, hy) = self.snake.head()
             f0 = min(self.foods, key=lambda f: (f['x'] - hx) ** 2 + (f['y'] - hy) ** 2)

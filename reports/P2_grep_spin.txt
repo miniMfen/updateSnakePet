@@ -1,0 +1,2 @@
+snake_pet/\constants.py:26:# v4 的 DIRS 四方向格点移动与 SPIN_DIRS 8 方向打转已在 P1/P2 移除,
+snake_pet/\snake.py:115:        self.forced_angle = None      # 外部强制目标角(P2 盘旋复用);v4 forced_dir 的 360° 版

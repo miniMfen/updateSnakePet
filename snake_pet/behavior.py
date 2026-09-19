@@ -1,5 +1,5 @@
-'''行为状态机 —— 饱食度/心情/睡觉/空闲小动作/进食反应/夜间判定(v4 语义,
-含 P0 字节码仲裁修正:空闲动作计时、睡帽菜单赋值等)。'''
+'''行为状态机 —— 饱食度/心情/睡觉/空闲小动作/进食反应/夜间判定/分层盘旋(P2)。'''
+import logging
 import math
 import random
 import time
@@ -31,7 +31,7 @@ class BehaviorMixin:
         # [P0-确认] 依据字节码 `_mood_timers`:仅当 无食物/未盘旋/未睡觉 时倒计时,
         # 计时到 0 先复位再触发一次空闲小动作(修复版把条件写反且每帧调用,已纠正)
         mood = self._mood()
-        if not self.foods and self._spin <= 0 and mood != 'sleep':
+        if not self.foods and self.snake.coil is None and mood != 'sleep':
             self._idle_timer -= 1
             if self._idle_timer <= 0:
                 self._idle_timer = random.randint(600, 1200)
@@ -59,8 +59,9 @@ class BehaviorMixin:
                 self._spawn_fx('zzz', hx, hy - 16, max=48)
 
     def _do_idle(self):
-        '''空闲小动作(无食物且非睡,每 600~1200 帧三选一):吐泡泡/歪头/原地打转'''
-        act = random.choice(('bubble', 'tilt', 'spin'))
+        '''空闲小动作(无食物且非睡,每 600~1200 帧触发):吐泡泡/歪头/分层盘旋。
+        盘旋权重 2/4:它是 v5 招牌行为(用户点名),且仅在真正空闲时发生'''
+        act = random.choice(('bubble', 'tilt', 'coil', 'coil'))
         (hx, hy) = self.snake.head()
         if act == 'bubble':
             (ux, uy) = self.snake.heading()
@@ -70,11 +71,42 @@ class BehaviorMixin:
         if act == 'tilt':
             self.tilt = 12
             return
-        self._spin = 36
-        for _ in range(3):
-            self._spawn_fx('star', hx + random.uniform(-22, 22), hy + random.uniform(-26, -2),
+        self._start_coil()
+
+    # ---- 分层盘旋(P2) ----
+    def _start_coil(self):
+        '''触发盘旋:睡觉中/摆尾动画中/已在盘旋 → 忽略;空间不足由 make_coil_plan 取消'''
+        if self._is_sleeping() or self.wag > 0 or self.snake.coil is not None:
+            return
+        plan = self.snake.make_coil_plan()
+        if plan is None:
+            logging.info('盘旋取消:空间不足或体长过短')
+            return
+        self.snake.coil = plan
+        (hx, hy) = self.snake.head()
+        for _ in range(4):
+            self._spawn_fx('star', hx + random.uniform(-24, 24), hy + random.uniform(-26, -2),
                            size=random.uniform(3, 5), color=random.choice(FX_COLORS),
                            max=30, seed=random.random())
+
+    def _coil_step(self, active):
+        '''每帧盘旋伴生逻辑:盘踞冒泡泡、食物+活跃档快速盘出、结束庆祝'''
+        plan = self.snake.coil
+        if plan is None:
+            return
+        if plan.in_out_phase and plan.t % 24 == 0:
+            (hx, hy) = self.snake.head()
+            self._spawn_fx('bfx', hx, hy - 12, size=random.uniform(3, 5), max=36)
+        if active and self.foods and not plan.in_out_phase:
+            plan.fast_unwind()   # AC-F2-4:优雅中断,快速盘出
+        if plan.finished and not plan.celebrated:
+            plan.celebrated = True
+            self.wag = 14
+            (hx, hy) = self.snake.head()
+            for _ in range(3):
+                self._spawn_fx('star', hx + random.uniform(-22, 22), hy + random.uniform(-26, -2),
+                               size=random.uniform(3, 5), color=random.choice(FX_COLORS),
+                               max=30, seed=random.random())
 
     def _on_eat(self):
         self.satiety = min(SATIETY_MAX, self.satiety + SATIETY_GAIN)

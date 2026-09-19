@@ -6,8 +6,12 @@ import math
 import random
 from collections import deque
 
-from .constants import (ACTIVE_STEP, EDGE_INFLUENCE, EDGE_PUSH_GAIN, EAT_RADIUS, GROW_PER_FOOD,
-                        MAX_PATH, MAX_TURN_ACTIVE, MAX_TURN_QUIET, QUIET_STEP, SEG,
+from .constants import (ACTIVE_STEP, BODY_R, COIL_ABORT_GRACE_DIST, COIL_ABORT_GRACE_FRAMES,
+                        COIL_CARROT_LOOK, COIL_DEVIATION_ABORT, COIL_DWELL_RANGE,
+                        COIL_GAP_FACTOR, COIL_MARGIN_FACTOR, COIL_MAX_SEGS_SMALL,
+                        COIL_OMEGA_RANGE, COIL_OUT_RANGE, COIL_R0_RANGE, COIL_R_MIN_FACTOR,
+                        EDGE_INFLUENCE, EDGE_PUSH_GAIN, EAT_RADIUS, GROW_PER_FOOD, MAX_PATH,
+                        MAX_TURN_ACTIVE, MAX_TURN_COIL, MAX_TURN_QUIET, QUIET_STEP, SEG,
                         STALL_TIMEOUT, WANDER_BIAS_INTERVAL, WANDER_BIAS_RANGE,
                         WANDER_DRIFT_SIGMA)
 
@@ -19,6 +23,75 @@ def wrap_pi(a):
     while a < -math.pi:
         a += 2 * math.pi
     return a
+
+
+class CoilPlan:
+    '''分层盘旋三阶段计划(P2):盘入(半径线性收敛)→盘踞(匀速)→盘出(反向展开)。
+    每帧输出一个「期望头位置」交给转向器逼近,不做瞬移;支持快速盘出中断。'''
+
+    def __init__(self, center, r0, r_min, omega_f, direction, t_in, dwell, t_out,
+                 revs, small=False):
+        self.cx, self.cy = center
+        self.r0 = r0
+        self.r_min = r_min
+        self.omega_f = omega_f        # rad/帧
+        self.dir = direction          # +1/-1 盘旋方向
+        self.t_in = t_in              # 盘入帧数
+        self.dwell = dwell            # 盘踞帧数
+        self.t_out = t_out            # 盘出帧数
+        self.revs = revs              # 盘入圈数(几何层)
+        self.small = small            # 短蛇降级小圈标记
+        self.t = 0
+        self.fast = False             # 快速盘出(中断)标记
+        self.theta0 = None            # 首帧按头位置校准,保证方向连续
+        self._fast_start_t = None
+        self._fast_r0 = None
+        self._fast_t_out = None
+        self.celebrated = False
+
+    def radius_at(self, t):
+        '''计划半径(纯几何,供测试与期望点计算)'''
+        if self.fast and self._fast_start_t is not None and t >= self._fast_start_t:
+            u = (t - self._fast_start_t) / self._fast_t_out
+            return self._fast_r0 + (self.r0 - self._fast_r0) * min(1.0, u)
+        if t < self.t_in:
+            s = t / self.t_in
+            return self.r_min + (self.r0 - self.r_min) * (1 - s)
+        if t < self.t_in + self.dwell:
+            return self.r_min
+        u = (t - self.t_in - self.dwell) / self.t_out
+        return self.r_min + (self.r0 - self.r_min) * min(1.0, u)
+
+    def desired_point(self, hx, hy):
+        '''期望头位置 (x, y, r, θ);θ 从首帧头位角连续起始'''
+        if self.theta0 is None:
+            self.theta0 = math.atan2(hy - self.cy, hx - self.cx)
+        theta = self.theta0 + self.dir * self.omega_f * self.t
+        r = self.radius_at(self.t)
+        return (self.cx + math.cos(theta) * r, self.cy + math.sin(theta) * r, r, theta)
+
+    def arc_speed(self):
+        '''期望点的线速度(px/帧),作为盘旋期间的步速,保证头跟得上'''
+        return self.omega_f * max(8.0, self.radius_at(self.t))
+
+    def fast_unwind(self):
+        '''快速盘出:从当前半径/角度无缝切入展开(时长缩短,不跳变)'''
+        if self.fast:
+            return
+        self._fast_start_t = self.t
+        self._fast_t_out = max(12, int(self.t_out * 0.4))
+        self._fast_r0 = self.radius_at(self.t)   # fast 置位前快照当前半径
+        self.fast = True
+
+    @property
+    def in_out_phase(self):
+        return self.fast or self.t >= self.t_in
+
+    @property
+    def finished(self):
+        if self.fast:
+            return self._fast_start_t is not None and self.t >= self._fast_start_t + self._fast_t_out
+        return self.t >= self.t_in + self.dwell + self.t_out
 
 
 class Snake:
@@ -40,6 +113,7 @@ class Snake:
             self.path.append((x0 - ux * i * 8, y0 - uy * i * 8, dist))
             dist += 8
         self.forced_angle = None      # 外部强制目标角(P2 盘旋复用);v4 forced_dir 的 360° 版
+        self.coil = None              # CoilPlan(P2);非 None 时 move 走盘旋分支
         self._wander_target = self.heading_angle
         self._bias_timer = random.randint(*WANDER_BIAS_INTERVAL)
         self._avoid_side = 1          # 避让偏转侧记忆(防左右抖动)
@@ -102,6 +176,8 @@ class Snake:
     # ---- 主步进 ----
     def move(self, step, active, foods, eat_enabled):
         (hx, hy) = self.head()
+        if self.coil is not None:
+            return self._move_coil(active, foods, eat_enabled)
         if self.forced_angle is not None:
             target = self.forced_angle
             self.forced_angle = None
@@ -130,6 +206,100 @@ class Snake:
                     eaten.append((fx, fy))
                     self.body_len += GROW_PER_FOOD
         return eaten
+
+    # ---- 盘旋(P2):「导轨上的胡萝卜」追逐法 —— 胡萝卜固定在头自身角度前方
+    # ω×look 处、半径取计划值:角度不滞后、半径自然收敛,复用限速转向 ----
+    def _move_coil(self, active, foods, eat_enabled):
+        plan = self.coil
+        (hx, hy) = self.head()
+        r_act = max(4.0, math.hypot(hx - plan.cx, hy - plan.cy))
+        th_act = math.atan2(hy - plan.cy, hx - plan.cx)
+        r_car = plan.radius_at(plan.t + COIL_CARROT_LOOK)
+        ang = th_act + plan.dir * plan.omega_f * COIL_CARROT_LOOK
+        tx = plan.cx + math.cos(ang) * r_car
+        ty = plan.cy + math.sin(ang) * r_car
+        dev = math.hypot(tx - hx, ty - hy)
+        grace = plan.t < COIL_ABORT_GRACE_FRAMES
+        if dev > (COIL_ABORT_GRACE_DIST if grace else COIL_DEVIATION_ABORT):
+            plan.fast_unwind()   # 被拎起/碰壁等偏离过大 → 快速盘出
+        step = min(ACTIVE_STEP, max(QUIET_STEP, plan.omega_f * r_act))
+        if grace:
+            step *= 0.45         # 起步对准切线:减速压低瞬态
+        elif dev > 30:
+            step *= 0.6
+        self.steer(math.atan2(ty - hy, tx - hx), MAX_TURN_COIL)
+        nx = hx + math.cos(self.heading_angle) * step
+        ny = hy + math.sin(self.heading_angle) * step
+        (cx, cy) = self._clamp(nx, ny)
+        if (cx, cy) != (nx, ny):
+            self._slide_along_edge(hx, hy, cx, cy, nx, ny)
+            plan.fast_unwind()
+        last = self.path[-1]
+        nd = last[2] + math.hypot(cx - last[0], cy - last[1])
+        self.path.append((cx, cy, nd))
+        while len(self.path) > MAX_PATH:
+            self.path.popleft()
+        eaten = []
+        if active and eat_enabled:
+            for (fx, fy) in foods:
+                if math.hypot(fx - nx, fy - ny) <= EAT_RADIUS:
+                    eaten.append((fx, fy))
+                    self.body_len += GROW_PER_FOOD
+        plan.t += 1
+        if plan.finished:
+            self.coil = None
+        return eaten
+
+    # ---- 盘旋计划生成:中心选取 + 可行性 + 圈距约束 ----
+    def make_coil_plan(self):
+        '''按 P2 §2.1 选取中心并 clamp:优先头前方 r0 处,不可行时向两侧偏转找
+        开阔中心;空间不足逐级缩 R0,仍不足返回 None(取消盘旋)。
+        圈距 = (r0-r_min)/圈数 ≥ 1.6×BODY_R 由 COIL_GAP_FACTOR=1.9 保证;
+        圈数同时受体长支撑(螺线弧长 ≈ 圈数×2π×平均半径)约束。'''
+        (hx, hy) = self.head()
+        (x0, y0, x1, y1) = self.bounds
+        r_min = COIL_R_MIN_FACTOR * BODY_R
+        gap = COIL_GAP_FACTOR * BODY_R
+        omega_f = random.uniform(*COIL_OMEGA_RANGE) / 30.0
+        direction = random.choice((-1, 1))
+        small = self.body_len <= COIL_MAX_SEGS_SMALL * SEG
+        if small:
+            r0_candidates = (max(r_min + 10, 36),)
+        else:
+            r0_candidates = tuple(random.uniform(*COIL_R0_RANGE) * k for k in (1.0, 0.85, 0.7))
+        for r0 in r0_candidates:
+            r_need = r0 + COIL_MARGIN_FACTOR * BODY_R
+            for dtheta in (0.0, math.pi / 4, -math.pi / 4, math.pi / 2, -math.pi / 2):
+                ang = self.heading_angle + dtheta
+                cx = hx + math.cos(ang) * r0
+                cy = hy + math.sin(ang) * r0
+                if not (x0 <= cx - r_need and cx + r_need <= x1
+                        and y0 <= cy - r_need and cy + r_need <= y1):
+                    continue
+                blocked = False
+                for (ax0, ay0, ax1, ay1) in getattr(self, 'avoid_rects', ()):
+                    qx = min(max(cx, ax0), ax1)
+                    qy = min(max(cy, ay0), ay1)
+                    if (qx - cx) ** 2 + (qy - cy) ** 2 < r_need ** 2:
+                        blocked = True
+                        break
+                if blocked:
+                    continue
+                if small:
+                    revs = 1
+                else:
+                    revs_geo = max(2, int((r0 - r_min) / gap))
+                    path_per_rev = 2 * math.pi * (r0 + r_min) / 2
+                    revs_body = max(0, int(self.body_len / path_per_rev))
+                    revs = min(revs_geo, revs_body)
+                    if revs < 2:
+                        continue  # 体长撑不起 ≥2 层 → 换更小 R0 或取消
+                t_in = max(1, int(revs * 2 * math.pi / omega_f))
+                dwell = COIL_DWELL_RANGE[0] if small else random.randint(*COIL_DWELL_RANGE)
+                t_out = random.randint(*COIL_OUT_RANGE)
+                return CoilPlan((cx, cy), r0, r_min, omega_f, direction, t_in, dwell,
+                                t_out, revs, small=small)
+        return None
 
     # ---- 追食 ----
     def _chase(self, hx, hy, step, foods):

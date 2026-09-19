@@ -16,7 +16,7 @@ class MenuMixin:
 
     @property
     def MENU_PH(self):
-        nrows = 9
+        nrows = 10
         return self.MENU_PAD + self.MENU_HEAD + nrows * self.MENU_ROWH + self.MENU_PAD
 
     def _ensure_menu_window(self):
@@ -133,6 +133,10 @@ class MenuMixin:
         y += rowh
         self._menu_rows.append({'kind': 'button', 'label': '卖萌一次…', 'y': y, 'h': rowh})
         self._menu_hits.append((0, y, pw, y + rowh, (lambda: self._do_moe())))
+        y += rowh
+        self._menu_rows.append({'kind': 'button', 'label': '盘旋一次', 'y': y, 'h': rowh,
+                                'style': 'teal'})
+        self._menu_hits.append((0, y, pw, y + rowh, (lambda: self._start_coil())))
         y += rowh
         nseg = max(1, int(self.snake.body_len // SEG))
         self._menu_rows.append({
@@ -265,7 +269,8 @@ class MenuMixin:
                 x0 = pad + 26
                 yy0 = y0 + 4
                 yy1 = y1 - 4
-                d.rounded_rectangle([x0, yy0, x1, yy1], radius=11, fill=(255, 170, 195, 255))
+                fill = (120, 205, 200, 255) if row.get('style') == 'teal' else (255, 170, 195, 255)
+                d.rounded_rectangle([x0, yy0, x1, yy1], radius=11, fill=fill)
                 bb = d.textbbox((0, 0), row['label'], font=f15)
                 bw = bb[2] - bb[0]
                 bh = bb[3] - bb[1]

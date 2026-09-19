@@ -23,8 +23,8 @@ TICK_MS = 33          # 帧间隔(约 30fps)
 QUIET_STEP = 1.6      # 安静档步速(px/帧)
 ACTIVE_STEP = 9.5     # 活跃档步速(px/帧)
 
-# v4 的 DIRS 四方向格点移动与 SPIN_DIRS 8 方向表已在 P1 移除,
-# 由连续角度转向(heading_angle + steer)替代;盘旋兼容层见 app._step。
+# v4 的 DIRS 四方向格点移动与 SPIN_DIRS 8 方向打转已在 P1/P2 移除,
+# 由连续角度转向(heading_angle + steer)与分层盘旋(CoilPlan)替代。
 
 # ---- P1 360° 转向参数(供调参) ----
 MAX_TURN_QUIET = 0.10        # 安静档每帧最大转角(rad)
@@ -35,6 +35,21 @@ WANDER_BIAS_RANGE = math.pi * 2 / 3  # 趋势角重置偏摆幅(±120°)
 EDGE_INFLUENCE = 60          # 边界内推起始距离(px)
 EDGE_PUSH_GAIN = 1.6         # 内推场增益(越贴边转得越急)
 STALL_TIMEOUT = 60           # 追食卡死判定(帧)
+
+# ---- P2 分层盘旋参数 ----
+MAX_TURN_COIL = 0.25         # 盘旋档每帧最大转角(rad)
+COIL_R0_RANGE = (60, 100)    # 盘旋外圈半径随机范围(px,约 80±20)
+COIL_R_MIN_FACTOR = 2.2      # 最小圈半径 = 系数 × BODY_R(保证圈间有缝)
+COIL_GAP_FACTOR = 1.9        # 圈距 = 系数 × BODY_R(≥1.6 即达标,留裕量)
+COIL_OMEGA_RANGE = (2.0, 2.6)  # 角速度范围(rad/s)
+COIL_MARGIN_FACTOR = 2.5     # 外接圆余量 = 系数 × BODY_R
+COIL_DEVIATION_ABORT = 60    # 期望点偏差超过该值 → 快速盘出(px)
+COIL_CARROT_LOOK = 6         # 胡萝卜前视帧数(头自身角度前方 ω×look 处)
+COIL_ABORT_GRACE_FRAMES = 15 # 起步宽限帧数(对准切线前不判中断)
+COIL_ABORT_GRACE_DIST = 150  # 起步宽限内的中断距离阈值(px)
+COIL_DWELL_RANGE = (60, 150) # 盘踞时长(帧,约 2~5s)
+COIL_OUT_RANGE = (40, 70)    # 盘出时长(帧)
+COIL_MAX_SEGS_SMALL = 10     # 体长 ≤ 该节数 → 降级为小圈
 
 # ---- 经典绿系配色(v5-P3 作为默认主题) ----
 C_BODY = ((155, 232, 159), (111, 217, 122), (85, 201, 107), (67, 186, 94))
