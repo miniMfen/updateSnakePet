@@ -150,5 +150,6 @@ DEFAULT_CFG = {
     'state': 'auto',
     'autostart': True,
     'theme': DEFAULT_THEME,
+    'hat': 'auto',
     'ver': 2,
 }

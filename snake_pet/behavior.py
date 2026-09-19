@@ -177,8 +177,6 @@ class BehaviorMixin:
         self.foods = keep
 
     def _is_night(self):
-        '''22:00 ~ 6:00 为夜间(戴睡帽);菜单可强制 戴上/摘掉'''
-        if self._hat_override is not None:
-            return self._hat_override
+        '''22:00 ~ 6:00 为夜间(帽子 auto 档夜间戴夜帽)'''
         hour = time.localtime().tm_hour
         return hour >= 22 or hour < 6

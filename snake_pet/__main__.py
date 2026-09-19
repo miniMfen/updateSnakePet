@@ -7,6 +7,7 @@
 '''
 import json
 import logging
+import math
 import os
 import random
 import sys
@@ -186,24 +187,37 @@ def run_probe(outdir):
             break
     snap('盘旋', '分层盘旋:盘入→盘踞的阿基米德螺线多层圈')
 
-    # 6 夜帽:强制戴上
-    app._hat_override = True
-    snap('夜帽', '夜间睡帽(优先 cap.png 贴图)')
-    app._hat_override = None
+    # 6~9 夜帽四朝向(G4-2:旋转 ≤15° 视觉差)
+    app.cfg['hat'] = 'nightcap'
+    random.seed(66)
+    for _ in range(60):
+        app.snake.move(QUIET_STEP, False, [], True)
+    for deg, name in ((0, '夜帽0度'), (90, '夜帽90度'), (180, '夜帽180度'), (270, '夜帽270度')):
+        app.snake.heading_angle = math.radians(deg)
+        app.snake._wander_target = app.snake.heading_angle
+        app._render_frame()
+        snap(name, '夜帽随朝向旋转 %d°' % deg)
 
-    # 7/8 主题切换:经典绿、蜜桃粉(默认翡翠玉蛇见其他场景)
+    # 10~15 帽子衣柜:其余 6 顶
+    for hid, hname in (('santa', '圣诞'), ('crown', '皇冠'), ('graduation', '学士'),
+                       ('tophat', '礼帽'), ('cap_blue', '棒球'), ('bowknot', '蝴蝶结')):
+        app.cfg['hat'] = hid
+        snap('帽子' + hname, '帽子衣柜:%s' % hname)
+    app.cfg['hat'] = 'auto'
+
+    # 16/17 主题切换:经典绿、蜜桃粉(默认翡翠玉蛇见其他场景)
     from snake_pet.constants import THEME_IDS
     for tid, name in (('classic', '主题经典绿'), ('peach', '主题蜜桃粉')):
         app.cfg['theme'] = tid
         snap(name, '配色主题切换效果')
     app.cfg['theme'] = THEME_IDS[0]
 
-    # 9 吐信动画帧(取完全伸出帧)
+    # 18 吐信动画帧(取完全伸出帧)
     app.tongue = 4
     snap('吐信', '红色两叉吐信弹出帧')
     app.tongue = 0
 
-    # 10 长蛇 100 节
+    # 19 长蛇 100 节
     app.snake.body_len = SEG * 100
     app.snake.ensure_path_len(app.snake.body_len + 200)
     random.seed(88)
@@ -211,7 +225,7 @@ def run_probe(outdir):
         app.snake.move(QUIET_STEP, False, [], True)
     snap('长蛇100节', '100 节长蛇的锥形/斑纹/采样与窗口扩缩')
 
-    # 11 菜单打开
+    # 20 菜单打开
     app._menu_layout()
     img = app._render_menu_image()
     idx = len(scenes) + 1

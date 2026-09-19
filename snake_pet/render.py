@@ -11,6 +11,7 @@ from .constants import (BODY_R, C_BLUSH, C_CAP, C_CAP_EDGE, C_EFFECT, C_EYE, C_F
                         C_FOOD_HI, C_FOOD_LEAF, C_FOOD_LEAF_VEIN, C_FOOD_SHADE,
                         C_FOOD_STEM, C_MOUTH, C_PUPIL, DEFAULT_THEME, HEAD_R, PAD, SEG,
                         PATTERN_EVERY, SNAKE_THEMES, TAPER_TAIL, TONGUE_FRAMES)
+from .hats import HatRenderer, hat_anchor_pos, resolve_hat
 
 
 class RenderMixin:
@@ -40,11 +41,11 @@ class RenderMixin:
             + [(e['x'], e['y']) for e in self.effects] \
             + [(fx['x'] + fx.get('vx', 0.0) * fx.get('max', 30),
                 fx['y'] + fx.get('vy', 0.0) * fx.get('max', 30)) for fx in self.fx]
-        if self._is_night() and self._sprite_cap is not None:
+        self._current_hat_id = resolve_hat(self.cfg.get('hat', 'auto'), self._is_night())
+        if self._current_hat_id is not None:
             (hx, hy) = (segs[0][0], segs[0][1])
             cw = HEAD_R * 2.6
-            ch = cw * self._cap_ratio
-            pts.append((hx - cw / 2, hy - HEAD_R * 0.5 - ch))
+            pts.append((hx - cw / 2, hy - HEAD_R * 1.2 - cw))
             pts.append((hx + cw / 2, hy - HEAD_R * 0.5))
         tail_d = snake.path[-1][2] - snake.body_len - 4
         for p in snake.path:
@@ -431,8 +432,7 @@ class RenderMixin:
         # 贴图覆盖通道:sprites/snake_head.png(朝右蛇头)存在时整头替换(BASELINE §11)
         if getattr(self, '_sprite_head', None) is not None:
             self._paste_head_sprite(img, hx, hy, ss, ang)
-            if self._is_night():
-                self._draw_night_cap(img, d, hx, hy, ss, heading=(ux, uy))
+            self._draw_hat_layer(img, hx, hy, ss, ang)
             return
         # 吐信(画在头底下一层,从吻部前伸出)
         if self.tongue > 0 and not sleeping:
@@ -498,8 +498,20 @@ class RenderMixin:
         else:
             d.arc([hx - 4.6 * ss, hy + 2.0 * ss, hx + 4.6 * ss, hy + 10.0 * ss],
                   180, 360, fill=th['mouth'] + (255,), width=max(1, int(2 * ss)))
-        if self._is_night():
-            self._draw_night_cap(img, d, hx, hy, ss, heading=(ux, uy))
+        self._draw_hat_layer(img, hx, hy, ss, ang)
+
+    def _draw_hat_layer(self, img, hx, hy, ss, ang):
+        '''第 7 层:帽子(P4)——随朝向旋转,贴图 + 内置兜底双通道'''
+        hat_id = self._current_hat_id
+        if hat_id is None:
+            return
+        R = HEAD_R * ss
+        got = self._hat_renderer.get(hat_id, R, ang)
+        if got is None:
+            return
+        (spr, ax, ay) = got
+        (px_, py_) = hat_anchor_pos(hx, hy, ang, (ax, ay), R)
+        img.paste(spr, (int(px_ - spr.width / 2), int(py_ - spr.height / 2)), spr)
 
     def _draw_tongue(self, d, hx, hy, R, ang, ss, color):
         '''吐信动画:红色细长两叉,沿 heading 前伸 0.8R'''
@@ -531,28 +543,6 @@ class RenderMixin:
         deg = math.degrees(-ang)
         rot = spr.rotate(deg, expand=True, resample=Image.BICUBIC)
         img.paste(rot, (int(hx - rot.width / 2), int(hy - rot.height / 2)), rot)
-
-    def _draw_night_cap(self, img, d, hx, hy, ss, r=None, heading=(0, -1)):
-        '''夜间睡帽:优先使用 sprites/cap.png 贴图(戴端正不旋转);无贴图手绘锥形帽兜底'''
-        if self._sprite_cap is not None:
-            spr = self._sprite_cap
-            R = (r or HEAD_R) * ss
-            target_w = max(12, int(R * 2.6))
-            target_h = max(12, int(target_w * self._cap_ratio))
-            if spr.width != target_w or spr.height != target_h:
-                spr = spr.resize((target_w, target_h), Image.LANCZOS)
-            img.paste(spr, (int(hx - spr.width / 2), int(hy - R * 0.5 - spr.height)), spr)
-            return
-        R = (r or HEAD_R) * ss
-        left = hx - R * 1.0
-        right = hx + R * 1.0
-        d.polygon([(int(left), int(hy - R * 0.15)), (int(right), int(hy - R * 0.15)),
-                   (int(hx), int(hy - R * 1.55))], fill=C_CAP)
-        d.arc([left, hy - R * 0.9, right, hy + R * 0.3], 180, 360, fill=C_CAP_EDGE,
-              width=max(2, int(3 * ss)))
-        (bx, by) = (hx, hy - R * 1.55)
-        d.ellipse([bx - 4.5 * ss, by - 4.5 * ss, bx + 4.5 * ss, by + 4.5 * ss],
-                  fill=(255, 255, 255, 255))
 
     # ---- 食物 ----
     def _draw_apple(self, img, d, x, y, ss):

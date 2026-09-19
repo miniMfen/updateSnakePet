@@ -8,6 +8,7 @@ from PIL import Image, ImageDraw
 
 from .config import save_config
 from .constants import BODY_MAX, BODY_MIN, SEG
+from .hats import DEFAULT_REGISTRY as HAT_REGISTRY, HAT_IDS
 from .platform_win import blit_image_to_window, create_layered_window, show_window
 
 
@@ -16,8 +17,21 @@ class MenuMixin:
 
     @property
     def MENU_PH(self):
-        nrows = 11
+        # 行数含:开关×3 + 状态 + 帽子(折两行) + 主题 + 卖萌 + 盘旋 + 长度 + 动作×2
+        nrows = 3 + 1 + 2 + 1 + 1 + 1 + 1 + 2
         return self.MENU_PAD + self.MENU_HEAD + nrows * self.MENU_ROWH + self.MENU_PAD
+
+    HAT_GRID_LINES = (('自动', '摘掉', '夜帽', '圣诞', '皇冠'),
+                      ('学士', '礼帽', '棒球', '蝴蝶结'))
+
+    def _hat_chip_box(self, col, line, y):
+        '''帽子网格第 line 行第 col 列 chip 的命中矩形(每行最多 5 枚紧凑排布)'''
+        rowh = self.MENU_ROWH
+        pad = self.MENU_PAD
+        pitch = 46
+        cx = pad + col * pitch
+        yy = y + line * rowh + (rowh - 30) // 2
+        return (cx, yy, cx + 42, yy + 30)
 
     def _ensure_menu_window(self):
         if self._menu_hwnd:
@@ -117,20 +131,26 @@ class MenuMixin:
         for i, tag in enumerate(('auto', 'quiet', 'active')):
             self._menu_hits.append(self._chip_box(i, y) + ((lambda v=tag: self._set_state(v)),))
         y += rowh
-        hat_idx = {None: 0, True: 1, False: 2}[self._hat_override]
+        hat_ids = ('auto', 'none') + HAT_IDS
+        hat_names = ('自动', '摘掉') + tuple(HAT_REGISTRY[h]['name'] for h in HAT_IDS)
+        cur_hat = self.cfg.get('hat', 'auto')
+        if cur_hat not in hat_ids:
+            cur_hat = 'auto'
+        # 帽子行:9 枚 chips 折两行(5+4,布局扩容能力预演,P6/P7 菜单复用)
         self._menu_rows.append({
-            'kind': 'chips',
-            'label': '睡帽',
-            'chips': [('夜间自动', 0), ('戴上', 1), ('摘掉', 2)],
-            'active': hat_idx,
+            'kind': 'hatgrid',
+            'label': '帽子',
+            'chips': list(zip(hat_names, hat_ids)),
+            'active': cur_hat,
             'y': y,
-            'h': rowh,
+            'h': rowh * 2,
         })
-        # [P0-确认] 依据字节码:点睡帽 chip 会 setattr(self,'_hat_override',val) 后重绘
-        for i, v in enumerate((None, True, False)):
-            self._menu_hits.append(self._chip_box(i, y)
-                                   + ((lambda val=v: self._set_hat(val)),))
-        y += rowh
+        name_of = dict(zip(hat_names, hat_ids))
+        for line, names in enumerate(self.HAT_GRID_LINES):
+            for col, nm in enumerate(names):
+                self._menu_hits.append(self._hat_chip_box(col, line, y)
+                                       + ((lambda v=name_of[nm]: self._set_hat(v)),))
+        y += rowh * 2
         from .constants import SNAKE_THEMES
         cur_theme = self.cfg.get('theme') if self.cfg.get('theme') in [t['id'] for t in SNAKE_THEMES] else SNAKE_THEMES[0]['id']
         theme_idx = [t['id'] for t in SNAKE_THEMES].index(cur_theme)
@@ -178,8 +198,9 @@ class MenuMixin:
         self._reopen_menu()
 
     def _set_hat(self, val):
-        '''睡帽三态(None=夜间自动/True=戴上/False=摘掉)'''
-        self._hat_override = val
+        '''帽子选择:'auto'/'none'/帽 id;持久化到配置(P4)'''
+        self.cfg['hat'] = val
+        save_config(self.cfg)
         self._reopen_menu()
 
     def _set_theme(self, tid):
@@ -265,6 +286,28 @@ class MenuMixin:
                 bb = d.textbbox((0, 0), row['label'], font=f15)
                 d.text((pad + 48, y0 + (row['h'] - bb[3] - bb[1]) // 2 - bb[1]), row['label'],
                        font=f15, fill=(60, 70, 90, 255))
+                continue
+            if row['kind'] == 'hatgrid':
+                d.text((pad, y0 + 4), row['label'], font=f15, fill=(80, 90, 105, 255))
+                f13 = self._get_font(13)
+                for line, names in enumerate(self.HAT_GRID_LINES):
+                    for col, nm in enumerate(names):
+                        hid = dict((n, h) for n, h in row['chips'])[nm]
+                        (x0, yy0, x1, yy1) = self._hat_chip_box(col, line, y0)
+                        on = hid == row['active']
+                        cb = d.textbbox((0, 0), nm, font=f13)
+                        tw = cb[2] - cb[0]
+                        tx = x0 + (x1 - x0 - tw) // 2 - cb[0]
+                        ty = yy0 + (yy1 - yy0 - cb[3] - cb[1]) // 2 - cb[1]
+                        if on:
+                            d.rounded_rectangle([x0, yy0, x1, yy1], radius=9,
+                                                fill=(110, 200, 120, 255))
+                            d.text((tx, ty), nm, font=f13, fill=(255, 255, 255, 255))
+                            continue
+                        d.rounded_rectangle([x0, yy0, x1, yy1], radius=9,
+                                            fill=(255, 255, 255, 255),
+                                            outline=(160, 170, 180, 255), width=2)
+                        d.text((tx, ty), nm, font=f13, fill=(90, 100, 110, 255))
                 continue
             if row['kind'] == 'chips':
                 lb = d.textbbox((0, 0), row['label'], font=f15)

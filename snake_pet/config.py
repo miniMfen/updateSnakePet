@@ -36,7 +36,9 @@ def config_path():
 
 
 def load_config(path=None):
-    '''读取配置;ver<2 触发迁移(强制 no_spawn=True 后置 ver=2);损坏文件回退默认值'''
+    '''读取配置;ver<2 触发迁移(强制 no_spawn=True 后置 ver=2);损坏文件回退默认值;
+    非法帽子值回落 auto(P4)'''
+    from .hats import DEFAULT_REGISTRY
     cfg = dict(DEFAULT_CFG)
     p = path or config_path()
     try:
@@ -48,6 +50,8 @@ def load_config(path=None):
                 data['no_spawn'] = True
                 data['ver'] = 2
         cfg.update(data)
+        if cfg.get('hat') not in ('auto', 'none') and cfg.get('hat') not in DEFAULT_REGISTRY:
+            cfg['hat'] = 'auto'
         return cfg
     except Exception as e:
         logging.warning('读取配置失败, 使用默认值: %r', e)

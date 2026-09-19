@@ -25,8 +25,7 @@ from .platform_win import (BITMAPINFOHEADER, HOOKPROC, MSLLHOOKSTRUCT, PM_REMOVE
                            untopmost_window, virtual_screen, window_from_point, workarea)
 from .render import RenderMixin
 from .snake import Snake
-from .sprites import load_cap_sprite, load_snake_sprite, load_sprite, sprite_dominant
-
+from .sprites import load_snake_sprite, load_sprite, sprite_dominant
 user32 = ctypes.windll.user32
 gdi32 = ctypes.windll.gdi32
 kernel32 = ctypes.windll.kernel32
@@ -45,7 +44,6 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
         self._menu_hits = []
         self._menu_hwnd = None
         self._menu_open_t = 0
-        self._hat_override = None
         self._quitting = False
         self._blink = 0
         self._blink_timer = random.randint(90, 210)
@@ -81,11 +79,9 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
         self._hook_ready = threading.Event()
         self._hook_ok = False
         self._sprite_apple = load_sprite('apple.png')
-        self._sprite_cap = load_cap_sprite()
         self._sprite_head = load_sprite('snake_head.png')   # P3:整头贴图覆盖通道
-        self._cap_ratio = 1.0
-        if self._sprite_cap is not None:
-            self._cap_ratio = self._sprite_cap.height / max(1, self._sprite_cap.width)
+        from .hats import HatRenderer
+        self._hat_renderer = HatRenderer()                  # P4:帽子衣柜
         self._sprite_name = None
         (spr, sname) = load_snake_sprite()
         # [P0-确认→P3 适配] 依据 dis_init.txt 行 559~572:蛇贴图存在时取主色。
