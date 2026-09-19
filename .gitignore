@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+build/
+dist/app/
+dist/*.egg-info/
+*.log
+snake_pet_config.json
+pet_state.json
+reports/_tmp/
