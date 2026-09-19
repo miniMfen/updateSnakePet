@@ -9,7 +9,8 @@ from PIL import Image, ImageDraw, ImageFont
 
 from .constants import (BODY_R, C_BLUSH, C_CAP, C_CAP_EDGE, C_EFFECT, C_EYE, C_FOOD,
                         C_FOOD_HI, C_FOOD_LEAF, C_FOOD_LEAF_VEIN, C_FOOD_SHADE,
-                        C_FOOD_STEM, C_MOUTH, C_PUPIL, HEAD_R, PAD, SEG)
+                        C_FOOD_STEM, C_MOUTH, C_PUPIL, DEFAULT_THEME, HEAD_R, PAD, SEG,
+                        PATTERN_EVERY, SNAKE_THEMES, TAPER_TAIL, TONGUE_FRAMES)
 
 
 class RenderMixin:
@@ -277,16 +278,36 @@ class RenderMixin:
             d += step
         return out
 
+    # ---- 主题 ----
+    def _theme(self):
+        tid = self.cfg.get('theme') or DEFAULT_THEME
+        for t in SNAKE_THEMES:
+            if t['id'] == tid:
+                return t
+        return SNAKE_THEMES[0]
+
+    @staticmethod
+    def _lerp_color(c1, c2, k):
+        return tuple(int(c1[i] + (c2[i] - c1[i]) * k) for i in range(3))
+
+    @staticmethod
+    def _lighten(c, k):
+        return tuple(int(c[i] + (255 - c[i]) * k) for i in range(3))
+
+    @staticmethod
+    def _rot_ellipse_pts(cx, cy, rx, ry, angle, n=14):
+        '''旋转椭圆的多边形采样点(头部件用)'''
+        ca, sa = math.cos(angle), math.sin(angle)
+        pts = []
+        for i in range(n):
+            a = 2 * math.pi * i / n
+            ex, ey = math.cos(a) * rx, math.sin(a) * ry
+            pts.append((cx + ex * ca - ey * sa, cy + ex * sa + ey * ca))
+        return pts
+
+    # ---- 蛇身七层绘制(P3):shadow/outline/fill/pattern/belly/head/hat ----
     def _draw_snake(self, d, snake, ss, wx, wy):
-        '''游戏风格可爱蛇:连续圆润等宽身体 + 尾段平滑收细微微上翘 + 卡通描边。
-        用逐点圆链绘制:宽度逐点连续插值、转弯处绝对圆滑。'''
-        body = self._body_col
-        if self.flash > 0:
-            body = tuple(int(c * 0.5 + 127.5) for c in body)
-        head_main = tuple(int(c * 0.72 + 71.4) for c in body)
-        belly = tuple(int(c * 0.4 + 153) for c in body)
-        gloss = tuple(int(c * 0.55 + 114.75) for c in body)
-        outline = tuple(int(c * 0.6) for c in body)
+        th = self._theme()
         d0 = HEAD_R * 1.35
         step = 5 if snake.body_len <= 1200 else 8
         rp = self._build_render_path(snake)
@@ -297,119 +318,219 @@ class RenderMixin:
         loc = [((px - wx) * ss, (py - wy) * ss) for (px, py) in pts]
         n = len(loc)
 
-        def wr(t):
-            # [P0-确认] 依据修复报告:半径带 wr(i/(n-1)) 锥度权重(v4 原设计)
-            if t < 0.65:
-                return BODY_R
-            u = (t - 0.65) / 0.35
-            return max(4, BODY_R * (1 - u * u * 0.6))
+        def taper(t):
+            # P3:锥形身体 头 1.0 → 尾 0.55(在 v4 wr 锥度基础上强化),body_scale 为 P6 胖瘦钩子
+            scale = getattr(self, 'body_scale', 1.0)
+            return max(4.0, BODY_R * (1.0 - (1.0 - TAPER_TAIL) * (t ** 0.9)) * scale)
 
-        rad = [wr(i / max(1, n - 1)) * ss for i in range(n)]
+        rad = [taper(i / max(1, n - 1)) * ss for i in range(n)]
         if self.wag <= 0 and n >= 7:
             for off in range(1, 5):
                 idx = n - off - 1
                 if idx >= 2:
                     lift = math.sin((off / 4) * math.pi * 0.55) * 3.2 * ss
                     loc[idx] = (loc[idx][0], loc[idx][1] - lift)
-        for i in range(n):
-            r = rad[i] + 3 * ss
-            d.ellipse([loc[i][0] - r, loc[i][1] - r, loc[i][0] + r, loc[i][1] + r],
-                      fill=outline + (255,))
-        for i in range(n):
-            r = rad[i]
-            d.ellipse([loc[i][0] - r, loc[i][1] - r, loc[i][0] + r, loc[i][1] + r],
-                      fill=body + (255,))
-        for i in range(n):
-            r = max(1.5 * ss, rad[i] * 0.42)
-            d.ellipse([loc[i][0] - r, loc[i][1] - r, loc[i][0] + r, loc[i][1] + r],
-                      fill=gloss + (255,))
-        self._head_palette = (head_main, belly, outline)
+        if getattr(self, '_last_active', True):
+            self._draw_body_shadow(d, loc, rad, ss)
+        self._draw_body_outline(d, loc, rad, ss, th['outline'])
+        self._draw_body_fill(d, loc, rad, ss, th)
+        self._draw_belly_stripe(d, loc, rad, ss, th)
+        self._draw_body_pattern(d, loc, rad, ss, th)
         return None
 
-    # ---- 蛇头 ----
+    @staticmethod
+    def _body_tangents(loc):
+        tans = []
+        for i in range(len(loc)):
+            if i == 0:
+                dx = loc[1][0] - loc[0][0]
+                dy = loc[1][1] - loc[0][1]
+            elif i == len(loc) - 1:
+                dx = loc[-1][0] - loc[-2][0]
+                dy = loc[-1][1] - loc[-2][1]
+            else:
+                dx = loc[i + 1][0] - loc[i - 1][0]
+                dy = loc[i + 1][1] - loc[i - 1][1]
+            L = math.hypot(dx, dy) or 1.0
+            tans.append((dx / L, dy / L))
+        return tans
+
+    def _draw_body_shadow(self, d, loc, rad, ss):
+        '''第 1 层:身体投影(半透明深色向下偏移 2px)'''
+        sh = (20, 60, 40, 60)
+        for (x, y), r in zip(loc, rad):
+            d.ellipse([x - r, y - r + 2 * ss, x + r, y + r + 2 * ss], fill=sh)
+
+    @staticmethod
+    def _draw_body_outline(d, loc, rad, ss, outline):
+        '''第 2 层:深色外轮廓(半径 +2.5px 圆串)'''
+        for (x, y), r in zip(loc, rad):
+            r2 = r + 2.5 * ss
+            d.ellipse([x - r2, y - r2, x + r2, y + r2], fill=outline + (255,))
+
+    def _draw_body_fill(self, d, loc, rad, ss, th):
+        '''第 3 层:锥形主体,沿体长在主题 4 色间渐变(受光面亮→背光面深)'''
+        body = th['body']
+        flash = self.flash > 0
+        for i, ((x, y), r) in enumerate(zip(loc, rad)):
+            t = i / max(1, len(loc) - 1)
+            k = t * 3.0
+            j = min(2, int(k))
+            col = self._lerp_color(body[j], body[j + 1], k - j)
+            if flash:
+                col = tuple(int(c * 0.5 + 127.5) for c in col)
+            d.ellipse([x - r, y - r, x + r, y + r], fill=col + (255,))
+
+    def _draw_belly_stripe(self, d, loc, rad, ss, th):
+        '''第 4 层:腹部浅色带(沿身体屏幕下侧 40% 半径宽)'''
+        tans = self._body_tangents(loc)
+        belly = th['belly']
+        for (x, y), r, (tx, ty) in zip(loc, rad, tans):
+            nx, ny = -ty, tx
+            if ny < 0:              # 取指向屏幕下侧的法向
+                nx, ny = -nx, -ny
+            if abs(ny) < 0.3:       # 近垂直段取右侧,保持连贯
+                nx, ny = ty, -tx
+            bx = x + nx * r * 0.42
+            by = y + ny * r * 0.42
+            br = max(1.2 * ss, r * 0.40)
+            d.ellipse([bx - br, by - br, bx + br, by + br], fill=belly + (255,))
+
+    def _draw_body_pattern(self, d, loc, rad, ss, th):
+        '''第 5 层:背部菱形斑(每 PATTERN_EVERY 采样节一枚,随身体半径缩放)'''
+        tans = self._body_tangents(loc)
+        pat = th['pattern'] + (255,)
+        alt = th['pattern_alt'] + (255,)
+        for i in range(6, len(loc) - 3, PATTERN_EVERY):
+            (x, y), r, (tx, ty) = loc[i], rad[i], tans[i]
+            nx, ny = -ty, tx
+            s = max(2.5 * ss, r * 0.58)
+            a = s * 1.25
+            b = s * 0.72
+            d.polygon([(x + tx * a, y + ty * a), (x + nx * b, y + ny * b),
+                       (x - tx * a, y - ty * a), (x - nx * b, y - ny * b)], fill=pat)
+            d.ellipse([x - s * 0.22, y - s * 0.30, x + s * 0.22, y + s * 0.14], fill=alt)
+
+    # ---- 蛇头(P3 部件化):描边/吻部/眼(固定高光)/吐信/表情/腮红/鼻孔 ----
     def _draw_head(self, img, d, hx, hy, ss, heading, blinking, mood='normal', tilt_deg=0):
-        '''内置绘制的可爱大头(游戏风格;支持心情表情/歪头/夜间睡帽)'''
-        if hasattr(self, '_head_palette'):
-            (head_main, belly, outline) = self._head_palette
-        else:
-            body = self._body_col
-            head_main = tuple(int(c * 0.72 + 71.4) for c in body)
-            belly = tuple(int(c * 0.4 + 153.0) for c in body)
-            outline = tuple(int(c * 0.6) for c in body)
-        R = HEAD_R * ss
-        d.ellipse([hx - R - 2 * ss, hy - R - 2 * ss, hx + R + 2 * ss, hy + R + 2 * ss],
-                  fill=outline + (255,))
-        d.ellipse([hx - R, hy - R, hx + R, hy + R], fill=head_main + (255,))
-        hr = R * 0.45
-        d.ellipse([hx - hr - R * 0.3, hy - hr - R * 0.34,
-                   hx + hr - R * 0.3, hy + hr - R * 0.34], fill=belly + (255,))
+        th = self._theme()
         (ux, uy) = heading
         if tilt_deg:
             a = math.radians(tilt_deg)
             (c, s) = (math.cos(a), math.sin(a))
             (ux, uy) = (ux * c - uy * s, ux * s + uy * c)
-        (px2, py2) = (-uy, ux)
+        ang = math.atan2(uy, ux)
+        R = HEAD_R * ss
+        outline = th['outline']
+        head_main = th['head']
+        if self.flash > 0:
+            head_main = tuple(int(c * 0.5 + 127.5) for c in head_main)
+        belly = th['belly']
+        pupil_col = th['pupil']
         sleeping = mood == 'sleep'
-        # 眼白
-        for i in range(2):
-            s = 1.0 if i == 0 else -1.0
-            ex = hx + px2 * s * 6.5 * ss + ux * 6.0 * ss
-            ey = hy + py2 * s * 6.5 * ss + uy * 6.0 * ss
+        # 贴图覆盖通道:sprites/snake_head.png(朝右蛇头)存在时整头替换(BASELINE §11)
+        if getattr(self, '_sprite_head', None) is not None:
+            self._paste_head_sprite(img, hx, hy, ss, ang)
+            if self._is_night():
+                self._draw_night_cap(img, d, hx, hy, ss, heading=(ux, uy))
+            return
+        # 吐信(画在头底下一层,从吻部前伸出)
+        if self.tongue > 0 and not sleeping:
+            self._draw_tongue(d, hx, hy, R, ang, ss, th['tongue'])
+        # 轮廓:头圆 +2.5px 深色描边(比 v4 +2 更细更精致)
+        d.ellipse([hx - R - 2.5 * ss, hy - R - 2.5 * ss, hx + R + 2.5 * ss, hy + R + 2.5 * ss],
+                  fill=outline + (255,))
+        # 头顶受光面(柔和高光)
+        d.ellipse([hx - R, hy - R, hx + R, hy + R], fill=head_main + (255,))
+        sheen = self._lighten(head_main, 0.22)
+        d.polygon(self._rot_ellipse_pts(hx - ux * 0.18 * R - 0.12 * R,
+                                        hy - uy * 0.18 * R - 0.16 * R,
+                                        R * 0.62, R * 0.48, ang), fill=sheen + (255,))
+        # 吻部:浅色椭圆沿 heading 前移 0.35R
+        sx = hx + ux * R * 0.35
+        sy = hy + uy * R * 0.35
+        d.polygon(self._rot_ellipse_pts(sx, sy, R * 0.62, R * 0.5, ang), fill=belly + (255,))
+        # 鼻孔:吻部两侧两粒
+        for sgn in (-1.0, 1.0):
+            nxp = hx + ux * R * 0.72 - uy * sgn * R * 0.16
+            nyp = hy + uy * R * 0.72 + ux * sgn * R * 0.16
+            nr = R * 0.05
+            d.ellipse([nxp - nr, nyp - nr, nxp + nr, nyp + nr], fill=outline + (255,))
+        # 腮红
+        for sgn in (-1.0, 1.0):
+            bx = hx - uy * sgn * R * 0.62 + ux * R * 0.12
+            by = hy + ux * sgn * R * 0.62 + uy * R * 0.12
+            d.polygon(self._rot_ellipse_pts(bx, by, R * 0.17, R * 0.11, ang),
+                      fill=th['blush'] + (255,))
+        # 眼:白底 + 瞳孔 + 固定高光(高光相对瞳孔取屏幕左上,不随朝向/眨眼)
+        eye_col = C_EYE
+        for sgn in (-1.0, 1.0):
+            ex = hx - uy * sgn * R * 0.38 + ux * R * 0.30
+            ey = hy + ux * sgn * R * 0.38 + uy * R * 0.30
             if sleeping:
-                d.line([ex - 4.2 * ss, ey, ex + 4.2 * ss, ey], fill=C_PUPIL + (255,),
+                d.line([ex - 4.2 * ss, ey, ex + 4.2 * ss, ey], fill=pupil_col + (255,),
                        width=max(1, int(2 * ss)))
                 continue
-            rw = 4.8 * ss
-            rh = 1.3 if blinking else 4.8 * ss
-            d.ellipse([ex - rw, ey - rh, ex + rw, ey + rh], fill=C_EYE + (255,))
-        if not sleeping:
-            # 瞳孔 + 高光
-            for i in range(2):
-                s = 1.0 if i == 0 else -1.0
-                ex = hx + px2 * s * 6.5 * ss + ux * 9.2 * ss
-                ey = hy + py2 * s * 6.5 * ss + uy * 9.2 * ss
-                if mood == 'hungry':
-                    (rw, rh) = (2.2 * ss, 2.2 * ss)
-                    d.ellipse([ex - rw, ey - rh + 1.6 * ss, ex + rw, ey + rh + 1.6 * ss],
-                              fill=C_PUPIL + (255,))
-                    d.arc([ex - 5.2 * ss, ey - 4.8 * ss, ex + 5.2 * ss, ey + 3.0 * ss],
-                          180, 360, fill=head_main + (255,), width=max(2, int(3 * ss)))
-                    continue
-                rw = 2.2 * ss
-                rh = 0.9 if blinking else 2.2 * ss
-                d.ellipse([ex - rw, ey - rh, ex + rw, ey + rh], fill=C_PUPIL + (255,))
-                if blinking:
-                    continue
-                d.ellipse([ex - 1.3 * ss, ey - 1.5 * ss, ex + 0.7 * ss, ey + 0.5 * ss],
-                          fill=C_EYE + (255,))
-        # 腮红
-        for i in range(2):
-            s = 1.0 if i == 0 else -1.0
-            bx = hx + px2 * s * 9.5 * ss + ux * 3.0 * ss
-            by = hy + py2 * s * 9.5 * ss + ux * 3.0 * ss
-            d.ellipse([bx - 3.0 * ss, by - 1.9 * ss, bx + 3.0 * ss, by + 1.9 * ss],
-                      fill=C_BLUSH + (255,))
+            rw = R * 0.34
+            rh = 1.3 if blinking else R * 0.34
+            d.polygon(self._rot_ellipse_pts(ex, ey, rw, rh, ang), fill=eye_col + (255,))
+            if blinking:
+                continue
+            prx = ex + ux * R * 0.10
+            pry = ey + uy * R * 0.10
+            pr = R * 0.17 if mood != 'hungry' else R * 0.11
+            if mood == 'hungry':
+                pry += 1.6 * ss
+            d.ellipse([prx - pr, pry - pr, prx + pr, pry + pr], fill=pupil_col + (255,))
+            hlr = max(1.0, R * 0.065)
+            d.ellipse([prx - 0.07 * R - hlr, pry - 0.08 * R - hlr,
+                       prx - 0.07 * R + hlr, pry - 0.08 * R + hlr], fill=eye_col + (255,))
         # 嘴(睡/饿/开心/普通)
         if sleeping:
             d.ellipse([hx - 2.6 * ss, hy + 4.5 * ss, hx + 2.6 * ss, hy + 7.5 * ss],
-                      outline=C_MOUTH + (255,), width=max(1, int(2 * ss)))
+                      outline=th['mouth'] + (255,), width=max(1, int(2 * ss)))
         elif mood == 'hungry':
             d.ellipse([hx - 2.6 * ss, hy + 5.0 * ss, hx + 2.6 * ss, hy + 8.2 * ss],
-                      fill=C_MOUTH + (255,))
+                      fill=th['mouth'] + (255,))
         elif mood == 'happy':
             d.arc([hx - 6.2 * ss, hy + 2.5 * ss, hx + 6.2 * ss, hy + 9.5 * ss],
-                  180, 360, fill=C_MOUTH + (255,), width=max(1, int(2 * ss)))
+                  180, 360, fill=th['mouth'] + (255,), width=max(1, int(2 * ss)))
         else:
             d.arc([hx - 4.6 * ss, hy + 2.0 * ss, hx + 4.6 * ss, hy + 10.0 * ss],
-                  180, 360, fill=C_MOUTH + (255,), width=max(1, int(2 * ss)))
-        if mood in ('normal', 'happy'):
-            tx0 = hx - 2.2 * ss
-            ty0 = hy + 9.8 * ss
-            d.rounded_rectangle([tx0, ty0, tx0 + 4.4 * ss, ty0 + 5.4 * ss], radius=2.0 * ss,
-                                fill=(255, 140, 160, 255), outline=outline + (255,),
-                                width=max(1, int(1.2 * ss)))
+                  180, 360, fill=th['mouth'] + (255,), width=max(1, int(2 * ss)))
         if self._is_night():
-            self._draw_night_cap(img, d, hx, hy, ss, heading=heading)
+            self._draw_night_cap(img, d, hx, hy, ss, heading=(ux, uy))
+
+    def _draw_tongue(self, d, hx, hy, R, ang, ss, color):
+        '''吐信动画:红色细长两叉,沿 heading 前伸 0.8R'''
+        k = 1.0 - abs(self.tongue - TONGUE_FRAMES / 2.0) / (TONGUE_FRAMES / 2.0)  # 弹出-收回
+        L = R * 0.8 * (0.55 + 0.45 * k)
+        bx = hx + math.cos(ang) * (R * 0.92)
+        by = hy + math.sin(ang) * (R * 0.92)
+        mx = bx + math.cos(ang) * L * 0.55
+        my = by + math.sin(ang) * L * 0.55
+        tipx = bx + math.cos(ang) * L
+        tipy = by + math.sin(ang) * L
+        fork = L * 0.42
+        a1 = ang + 0.5
+        a2 = ang - 0.5
+        w = max(1, int(1.6 * ss))
+        d.line([bx, by, mx, my], fill=color + (255,), width=w)
+        d.line([mx, my, mx + math.cos(a1) * fork, my + math.sin(a1) * fork],
+               fill=color + (255,), width=w)
+        d.line([mx, my, tipx + math.cos(a2) * fork - (tipx - mx) * 0.0,
+                my + math.sin(a2) * fork], fill=color + (255,), width=w)
+
+    def _paste_head_sprite(self, img, hx, hy, ss, ang):
+        '''snake_head.png 覆盖:按朝向旋转后贴到头锚点(缩放至 2×头径)'''
+        spr = self._sprite_head
+        target = int(HEAD_R * 2.6 * ss)
+        if spr.width != target:
+            ratio = spr.height / max(1, spr.width)
+            spr = spr.resize((target, max(1, int(target * ratio))), Image.LANCZOS)
+        deg = math.degrees(-ang)
+        rot = spr.rotate(deg, expand=True, resample=Image.BICUBIC)
+        img.paste(rot, (int(hx - rot.width / 2), int(hy - rot.height / 2)), rot)
 
     def _draw_night_cap(self, img, d, hx, hy, ss, r=None, heading=(0, -1)):
         '''夜间睡帽:优先使用 sprites/cap.png 贴图(戴端正不旋转);无贴图手绘锥形帽兜底'''

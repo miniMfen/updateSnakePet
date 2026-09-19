@@ -191,20 +191,32 @@ def run_probe(outdir):
     snap('夜帽', '夜间睡帽(优先 cap.png 贴图)')
     app._hat_override = None
 
-    # 7 菜单打开
+    # 7/8 主题切换:经典绿、蜜桃粉(默认翡翠玉蛇见其他场景)
+    from snake_pet.constants import THEME_IDS
+    for tid, name in (('classic', '主题经典绿'), ('peach', '主题蜜桃粉')):
+        app.cfg['theme'] = tid
+        snap(name, '配色主题切换效果')
+    app.cfg['theme'] = THEME_IDS[0]
+
+    # 9 吐信动画帧(取完全伸出帧)
+    app.tongue = 4
+    snap('吐信', '红色两叉吐信弹出帧')
+    app.tongue = 0
+
+    # 10 长蛇 100 节
+    app.snake.body_len = SEG * 100
+    app.snake.ensure_path_len(app.snake.body_len + 200)
+    random.seed(88)
+    for _ in range(240):
+        app.snake.move(QUIET_STEP, False, [], True)
+    snap('长蛇100节', '100 节长蛇的锥形/斑纹/采样与窗口扩缩')
+
+    # 11 菜单打开
     app._menu_layout()
     img = app._render_menu_image()
     idx = len(scenes) + 1
     img.save(os.path.join(outdir, f'probe_{idx:02d}_菜单.png'))
     scenes.append({'scene': '菜单', 'note': '右键菜单面板 254px 宽', 'files': [{'file': f'probe_{idx:02d}_菜单.png', 'size': list(img.size)}]})
-
-    # 8 长蛇
-    app.snake.body_len = SEG * 80
-    app.snake.ensure_path_len(app.snake.body_len + 200)
-    random.seed(88)
-    for _ in range(240):
-        app.snake.move(QUIET_STEP, False, [], True)
-    snap('长蛇', '80 节长蛇的采样与窗口扩缩')
 
     index = {'probe': scenes, 'bounds': list(app.bounds)}
     with open(os.path.join(outdir, 'probe_index.json'), 'w', encoding='utf-8') as f:

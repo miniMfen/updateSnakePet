@@ -13,7 +13,7 @@ from ctypes import wintypes
 from .behavior import BehaviorMixin
 from .config import base_dir, config_path, load_config, save_config
 from .constants import (ACTIVE_STEP, APP_NAME, GROW_PER_FOOD, MARGIN, MAX_PATH, QUIET_STEP,
-                        SATIETY_DECAY_PER_SEC, SATIETY_START, SEG, TICK_MS)
+                        SATIETY_DECAY_PER_SEC, SATIETY_START, SEG, TONGUE_PERIOD, TICK_MS)
 from .fx import FxMixin
 from .menu import MenuMixin
 from .platform_win import (BITMAPINFOHEADER, HOOKPROC, MSLLHOOKSTRUCT, PM_REMOVE,
@@ -55,6 +55,10 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
         self.flash = 0
         self.wag = 0
         self.tilt = 0
+        self.tongue = 0
+        self._tongue_timer = random.randint(*TONGUE_PERIOD)
+        self.body_scale = 1.0      # P6 胖瘦系数钩子
+        self._last_active = True   # 渲染投影层仅活跃档绘制
         self._idle_timer = random.randint(600, 1200)
         self._chase_stall = 0
         self._chase_min = 1e+09
@@ -78,24 +82,28 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
         self._hook_ok = False
         self._sprite_apple = load_sprite('apple.png')
         self._sprite_cap = load_cap_sprite()
+        self._sprite_head = load_sprite('snake_head.png')   # P3:整头贴图覆盖通道
         self._cap_ratio = 1.0
         if self._sprite_cap is not None:
             self._cap_ratio = self._sprite_cap.height / max(1, self._sprite_cap.width)
         self._sprite_name = None
         (spr, sname) = load_snake_sprite()
-        # [P0-确认] 依据 dis_init.txt 行 559~572:有蛇贴图时取主色作 _body_col 并登记
-        # 看门狗监测色 [body, 变暗25];无贴图时用 C_BODY[1] 与 C_HEAD —— 修复版整块丢失,已还原
-        if spr is not None:
+        # [P0-确认→P3 适配] 依据 dis_init.txt 行 559~572:蛇贴图存在时取主色。
+        # P3 起配色由主题表驱动,看门狗监测色跟随主题;有头贴图时才用贴图主色
+        theme = self._theme()
+        if spr is not None and self._sprite_head is not None:
             body = sprite_dominant(spr)
             self._body_col = body
             self._sprite_name = sname
-            logging.info('蛇贴图 %s: 采用配色主色=%s', sname, body)
+            logging.info('蛇头贴图 %s: 看门狗监测色=%s', sname, body)
             self._watch_colors = [body,
                                   (max(0, body[0] - 25), max(0, body[1] - 25), max(0, body[2] - 25))]
         else:
-            from .constants import C_BODY
-            self._body_col = C_BODY[1]
-            self._watch_colors = [(166, 237, 169)]
+            self._body_col = theme['body'][1]
+            self._watch_colors = [theme['head'],
+                                  (max(0, theme['head'][0] - 25),
+                                   max(0, theme['head'][1] - 25),
+                                   max(0, theme['head'][2] - 25))]
         self._hwnd = None
         self._hdc_mem = None
         self._hbmp = None
@@ -321,6 +329,7 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
             self._refresh_avoid()
             self._self_check()
         step = ACTIVE_STEP if active else QUIET_STEP
+        self._last_active = active
         self._coil_step(active)
         if active and self.foods and self._break_chase <= 0:
             (hx, hy) = self.snake.head()

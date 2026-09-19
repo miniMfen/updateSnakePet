@@ -51,7 +51,7 @@ COIL_DWELL_RANGE = (60, 150) # 盘踞时长(帧,约 2~5s)
 COIL_OUT_RANGE = (40, 70)    # 盘出时长(帧)
 COIL_MAX_SEGS_SMALL = 10     # 体长 ≤ 该节数 → 降级为小圈
 
-# ---- 经典绿系配色(v5-P3 作为默认主题) ----
+# ---- 经典绿系配色(v4 原配色,保留为主题2) ----
 C_BODY = ((155, 232, 159), (111, 217, 122), (85, 201, 107), (67, 186, 94))
 C_HEAD = (166, 237, 169)
 C_BELLY = (227, 251, 230)
@@ -60,6 +60,56 @@ C_EYE = (255, 255, 255)
 C_PUPIL = (51, 51, 51)
 C_BLUSH = (255, 183, 197)
 C_MOUTH = (60, 110, 71)
+
+# ---- P3 主题表(≥3 套;字段见 reports/P3_style_analysis.md §3) ----
+# 主题1「翡翠玉蛇」:以微软 Fluent 3D 蛇(snake_fluent3d.png, MIT)量化取色为基准
+SNAKE_THEMES = (
+    {
+        'id': 'jade', 'name': '翡翠玉蛇',
+        'body': ((96, 214, 150), (72, 196, 140), (58, 172, 122), (46, 148, 104)),
+        'head': (104, 218, 156),
+        'belly': (214, 244, 222),
+        'tail': (120, 210, 150),
+        'pattern': (190, 205, 70),
+        'pattern_alt': (255, 232, 120),
+        'outline': (38, 106, 82),
+        'pupil': (45, 42, 40),
+        'blush': (255, 170, 185),
+        'mouth': (46, 96, 74),
+        'tongue': (255, 96, 128),
+    },
+    {
+        'id': 'classic', 'name': '经典绿',
+        'body': C_BODY,
+        'head': C_HEAD,
+        'belly': C_BELLY,
+        'tail': C_TAIL,
+        'pattern': (255, 255, 255),
+        'pattern_alt': (255, 255, 255),
+        'outline': (52, 118, 60),
+        'pupil': C_PUPIL,
+        'blush': C_BLUSH,
+        'mouth': C_MOUTH,
+        'tongue': (255, 120, 140),
+    },
+    {
+        'id': 'peach', 'name': '蜜桃粉',
+        'body': ((255, 205, 190), (250, 178, 170), (242, 152, 155), (228, 128, 145)),
+        'head': (255, 210, 196),
+        'belly': (255, 240, 232),
+        'tail': (252, 196, 190),
+        'pattern': (255, 170, 150),
+        'pattern_alt': (255, 220, 200),
+        'outline': (170, 90, 100),
+        'pupil': (70, 48, 50),
+        'blush': (255, 140, 150),
+        'mouth': (150, 80, 90),
+        'tongue': (235, 90, 110),
+    },
+)
+THEME_IDS = tuple(t['id'] for t in SNAKE_THEMES)
+THEME_NAMES = tuple(t['name'] for t in SNAKE_THEMES)
+DEFAULT_THEME = 'jade'  # 用户指定以 snake_fluent3d 形象为默认(见 STATUS·D-012)
 
 # ---- 食物配色 ----
 C_FOOD = (255, 90, 95)
@@ -87,11 +137,18 @@ SATIETY_DECAY_PER_SEC = 0.1
 MOOD_HAPPY = 60
 MOOD_HUNGRY = 30
 
+# ---- P3 身体绘制规格 ----
+TAPER_TAIL = 0.55           # 身体锥形:尾端半径系数(头=1.0)
+PATTERN_EVERY = 4           # 背部菱形斑间隔(采样节)
+TONGUE_PERIOD = (240, 420)  # 吐信周期(帧,约 4~7s)
+TONGUE_FRAMES = 8           # 吐信持续帧数
+
 # ---- 默认配置(ver=2 为 v4 迁移链末端, v5-P6 再延伸到 5) ----
 DEFAULT_CFG = {
     'no_eat': False,
     'no_spawn': True,
     'state': 'auto',
     'autostart': True,
+    'theme': DEFAULT_THEME,
     'ver': 2,
 }

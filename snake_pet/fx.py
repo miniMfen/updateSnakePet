@@ -1,10 +1,9 @@
 '''特效定义与粒子(spawn/老化回收,防内存泄漏)。
 作为 mixin 挂到 SnakePet 上,保持 v4 方法名与 self 访问方式不变。'''
-import logging
 import math
 import random
 
-from .constants import FX_COLORS, FX_MAX
+from .constants import FX_COLORS, FX_MAX, TONGUE_FRAMES, TONGUE_PERIOD
 
 
 class FxMixin:
@@ -54,6 +53,15 @@ class FxMixin:
             self.wag -= 1
         if self.tilt > 0:
             self.tilt -= 1
+        # P3 吐信计时:每 4~7s 弹出 8 帧(睡觉时不吐)
+        if self.tongue > 0:
+            self.tongue -= 1
+        else:
+            self._tongue_timer -= 1
+            if self._tongue_timer <= 0:
+                self._tongue_timer = random.randint(*TONGUE_PERIOD)
+                if not self._is_sleeping():
+                    self.tongue = TONGUE_FRAMES
         alive = []
         for e in self.effects:
             e['t'] += 1

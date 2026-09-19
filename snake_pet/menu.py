@@ -16,7 +16,7 @@ class MenuMixin:
 
     @property
     def MENU_PH(self):
-        nrows = 10
+        nrows = 11
         return self.MENU_PAD + self.MENU_HEAD + nrows * self.MENU_ROWH + self.MENU_PAD
 
     def _ensure_menu_window(self):
@@ -131,6 +131,21 @@ class MenuMixin:
             self._menu_hits.append(self._chip_box(i, y)
                                    + ((lambda val=v: self._set_hat(val)),))
         y += rowh
+        from .constants import SNAKE_THEMES
+        cur_theme = self.cfg.get('theme') if self.cfg.get('theme') in [t['id'] for t in SNAKE_THEMES] else SNAKE_THEMES[0]['id']
+        theme_idx = [t['id'] for t in SNAKE_THEMES].index(cur_theme)
+        self._menu_rows.append({
+            'kind': 'chips',
+            'label': '主题',
+            'chips': [(t['name'], i) for i, t in enumerate(SNAKE_THEMES)],
+            'active': theme_idx,
+            'y': y,
+            'h': rowh,
+        })
+        for i, t in enumerate(SNAKE_THEMES):
+            self._menu_hits.append(self._chip_box(i, y)
+                                   + ((lambda tid=t['id']: self._set_theme(tid)),))
+        y += rowh
         self._menu_rows.append({'kind': 'button', 'label': '卖萌一次…', 'y': y, 'h': rowh})
         self._menu_hits.append((0, y, pw, y + rowh, (lambda: self._do_moe())))
         y += rowh
@@ -165,6 +180,12 @@ class MenuMixin:
     def _set_hat(self, val):
         '''睡帽三态(None=夜间自动/True=戴上/False=摘掉)'''
         self._hat_override = val
+        self._reopen_menu()
+
+    def _set_theme(self, tid):
+        '''切换配色主题(P3;P6 扩展为解锁皮肤)并持久化'''
+        self.cfg['theme'] = tid
+        save_config(self.cfg)
         self._reopen_menu()
 
     def _chip_box(self, i, y):
