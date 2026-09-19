@@ -19,7 +19,18 @@ class MenuMixin:
     def MENU_PH(self):
         # 行数含:开关×4 + 状态 + 帽子(折两行) + 卖萌 + 皮肤 + 成就 + 投喂 + 盘旋 + 长度 + 动作×2
         nrows = 4 + 1 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 2
+        if self._len_input is not None:
+            nrows += 4   # 长度输入编辑器展开(显示/数字×2/操作)
         return self.MENU_PAD + self.MENU_HEAD + nrows * self.MENU_ROWH + self.MENU_PAD
+
+    def _len_chip_box(self, col, line, y):
+        '''长度编辑器第 line 行第 col 列按键的命中矩形(5 列紧凑)'''
+        rowh = self.MENU_ROWH
+        pad = self.MENU_PAD
+        pitch = 46
+        cx = pad + col * pitch
+        yy = y + line * rowh + (rowh - 30) // 2
+        return (cx, yy, cx + 42, yy + 30)
 
     def _skin_chip_box(self, i, y):
         '''皮肤行第 i 枚 chip 的命中矩形(5 枚紧凑排布)'''
@@ -209,7 +220,29 @@ class MenuMixin:
         (mrect, prect) = self._length_buttons(y)
         self._menu_hits.append(mrect + (self._shrink_one,))
         self._menu_hits.append(prect + (self._grow_one,))
+        # 点击长度值区域 → 打开输入编辑器(问题二:手动输入蛇身长度)
+        self._menu_hits.append((self.MENU_PAD + 88, y, self.MENU_PAD + 160, y + rowh,
+                                (lambda: self._open_len_input())))
         y += rowh
+        if self._len_input is not None:
+            # 长度输入编辑器:显示行 + 数字两行 + 操作行(全点击驱动,无需键盘焦点)
+            self._menu_rows.append({
+                'kind': 'leneditor',
+                'text': self._len_input.get('text', ''),
+                'y': y,
+                'h': rowh * 4,
+            })
+            digits = ('1', '2', '3', '4', '5', '6', '7', '8', '9', '0')
+            for line in (0, 1):
+                for col in range(5):
+                    ch = digits[line * 5 + col]
+                    self._menu_hits.append(self._len_chip_box(col, line + 1, y)
+                                           + ((lambda c=ch: self._len_type(c)),))
+            ops = (('⌫', 'back'), ('清空', 'clear'), ('确定', 'ok'), ('取消', 'cancel'))
+            for col, (_txt, act) in enumerate(ops):
+                self._menu_hits.append(self._len_chip_box(col, 3, y)
+                                       + ((lambda a=act: self._len_action(a)),))
+            y += rowh * 4
         for label, cb in (('清空所有食物', (lambda: setattr(self, 'foods', []))),
                           ('退出', (lambda: self.quit()))):
             self._menu_rows.append({'kind': 'action', 'label': label, 'y': y, 'h': rowh})
@@ -253,6 +286,50 @@ class MenuMixin:
             self._spawn_bubble('还没有成就,加油呀~')
         else:
             self._spawn_bubble('最近:' + '、'.join(names[-3:]))
+
+    # ---- 长度输入编辑器(问题二) ----
+    def _open_len_input(self):
+        self._len_input = {'text': ''}
+        self._menu_rows = []
+        self._menu_hits = []
+        self._menu_layout()
+        if not self.headless and self.menu_rect:
+            img = self._render_menu_image()
+            blit_image_to_window(self._menu_hwnd, img, self.menu_rect[0], self.menu_rect[1])
+
+    def _len_type(self, ch):
+        text = self._len_input.get('text', '')
+        if len(text) < 3:
+            text = (text + ch).lstrip('0') or '0'
+        self._len_input['text'] = text
+        self._reopen_menu()
+
+    def _len_action(self, act):
+        if act == 'back':
+            self._len_input['text'] = self._len_input.get('text', '')[:-1]
+        elif act == 'clear':
+            self._len_input['text'] = ''
+        elif act == 'cancel':
+            self._len_input = None
+        elif act == 'ok':
+            self._apply_len_input()
+            return
+        self._reopen_menu()
+
+    def _apply_len_input(self):
+        '''确定:把输入的节数应用到蛇身长度(钳制在 2~100 节)'''
+        txt = self._len_input.get('text', '') if self._len_input else ''
+        self._len_input = None
+        try:
+            n = int(txt)
+        except ValueError:
+            n = max(1, int(self.snake.body_len // SEG))
+        n = max(2, min(100, n))
+        s = self.snake
+        s.body_len = n * SEG
+        s.ensure_path_len(s.body_len + 40)
+        self._spawn_bubble('长度设为 %d 节~' % n)
+        self._reopen_menu()
 
     def _chip_box(self, i, y):
         '''第 i 个 chip 的命中矩形(与 _render_menu_image 的布局一致)'''
@@ -372,6 +449,35 @@ class MenuMixin:
                     d.rounded_rectangle([x0, yy0, x1, yy1], radius=9, fill=(255, 255, 255, 255),
                                         outline=(160, 170, 180, 255), width=2)
                     d.text((tx, ty), txt, font=f14, fill=(90, 100, 110, 255))
+                continue
+            if row['kind'] == 'leneditor':
+                # 长度输入编辑器:显示行 + 数字键盘 + 操作行
+                text = row['text'] or '0'
+                f18 = self._get_font(18)
+                d.text((pad, y0 + 6), '输入节数: %s' % text, font=f18, fill=(40, 110, 70, 255))
+                f14 = self._get_font(14)
+                digits = ('1', '2', '3', '4', '5', '6', '7', '8', '9', '0')
+                for line in (0, 1):
+                    for col in range(5):
+                        ch = digits[line * 5 + col]
+                        (x0, yy0, x1, yy1) = self._len_chip_box(col, line + 1, y0)
+                        d.rounded_rectangle([x0, yy0, x1, yy1], radius=9,
+                                            fill=(255, 255, 255, 255),
+                                            outline=(150, 165, 180, 255), width=2)
+                        cb = d.textbbox((0, 0), ch, font=f14)
+                        d.text((x0 + (x1 - x0 - cb[2] + cb[0]) // 2 - cb[0],
+                                yy0 + (yy1 - yy0 - cb[3] + cb[1]) // 2 - cb[1]),
+                               ch, font=f14, fill=(60, 70, 90, 255))
+                ops = (('⌫', (200, 90, 90)), ('清空', (170, 175, 185)),
+                       ('确定', (110, 200, 120)), ('取消', (235, 150, 170)))
+                for col, (txt, col_rgb) in enumerate(ops):
+                    (x0, yy0, x1, yy1) = self._len_chip_box(col, 3, y0)
+                    d.rounded_rectangle([x0, yy0, x1, yy1], radius=9,
+                                        fill=col_rgb + (255,))
+                    cb = d.textbbox((0, 0), txt, font=f14)
+                    d.text((x0 + (x1 - x0 - cb[2] + cb[0]) // 2 - cb[0],
+                            yy0 + (yy1 - yy0 - cb[3] + cb[1]) // 2 - cb[1]),
+                           txt, font=f14, fill=(255, 255, 255, 255))
                 continue
             if row['kind'] == 'skingrid':
                 lb = d.textbbox((0, 0), row['label'], font=f15)

@@ -15,7 +15,7 @@ from .config import base_dir, config_path, load_config, save_config
 from .constants import (ACHIEVEMENTS, ACTIVE_STEP, APP_NAME, BODY_START_SEG, FX_COLORS,
                         GROW_PER_FOOD, HEAD_R, MARGIN, MAX_PATH, QUIET_STEP,
                         SATIETY_DECAY_PER_SEC, SATIETY_START, SEG, SAVE_PERIOD_SEC,
-                        TONGUE_PERIOD, TICK_MS)
+                        SS_BUDGET_MAX, SS_BUDGET_MIN, SS_PIXEL_BUDGET, TONGUE_PERIOD, TICK_MS)
 from .fx import FxMixin
 from .growth import (Achievements, digest_step, fatness_of, load_pet_state, save_pet_state,
                      stage_baseline, stage_coeff, stage_of)
@@ -66,6 +66,9 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
         self._last_active = True   # 渲染投影层仅活跃档绘制
         self._squash = 0           # P5 放下挤压动画帧
         self._interact = InteractSM(None)  # P5 互动状态机(bounds 就绪后补)
+        self._len_input = None     # v5.1.2 长度输入编辑器状态(菜单用)
+        self._ss_budget = SS_PIXEL_BUDGET   # v5.1.2 自适应像素预算
+        self._frame_times = []
         self._stage_render = 1.0   # P6 平滑后的体型系数(渲染用)
         self._eat_times = []       # P6 胖瘦滚动窗口(进食时间戳)
         self._digest_fx_at = 0.0   # P6 消化粒子计时
@@ -459,6 +462,21 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
 
     # ---- 主步进 ----
     def _step(self):
+        t0 = time.perf_counter()
+        try:
+            self._step_impl()
+        finally:
+            # v5.1.2 自适应画质:实测帧耗时驱动像素预算升降,平衡帧率与细腻度
+            self._frame_times.append(time.perf_counter() - t0)
+            if len(self._frame_times) >= 30:
+                avg = sum(self._frame_times) / len(self._frame_times)
+                self._frame_times = []
+                if avg > 0.030:
+                    self._ss_budget = max(SS_BUDGET_MIN, self._ss_budget * 0.88)
+                elif avg < 0.020:
+                    self._ss_budget = min(SS_BUDGET_MAX, self._ss_budget * 1.10)
+
+    def _step_impl(self):
         if self._is_sleeping():
             self.satiety = 0.0
         else:

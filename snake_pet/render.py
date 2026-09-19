@@ -10,8 +10,7 @@ from PIL import Image, ImageDraw, ImageFont
 from .constants import (BODY_R, C_BLUSH, C_CAP, C_CAP_EDGE, C_EFFECT, C_EYE, C_FOOD,
                         C_FOOD_HI, C_FOOD_LEAF, C_FOOD_LEAF_VEIN, C_FOOD_SHADE,
                         C_FOOD_STEM, C_MOUTH, C_PUPIL, DEFAULT_THEME, HEAD_R, PAD, SEG,
-                        PATTERN_EVERY, SS_MAX, SS_PIXEL_BUDGET,
-                        SNAKE_THEMES, TAPER_TAIL, TONGUE_FRAMES)
+                        PATTERN_EVERY, SS_MAX, SNAKE_THEMES, TAPER_TAIL, TONGUE_FRAMES)
 from .hats import HatRenderer, hat_anchor_pos, resolve_hat
 
 
@@ -61,9 +60,9 @@ class RenderMixin:
         w = int(max(xs) - min(xs) + PAD * 2 + 2)
         h = int(max(ys) - min(ys) + PAD * 2 + 2)
         area = w * h
-        # v5.1 像素预算式超采样:渲染像素数恒定 ≤ 预算,大画布自动降档,
-        # 既保证小画布 2× 抗锯齿(去马赛克),又不拖垮帧率
-        ss = min(SS_MAX, max(1.0, (SS_PIXEL_BUDGET / max(1, area)) ** 0.5))
+        # v5.1.2 自适应像素预算:预算随实测帧时间自动升降,
+        # 小画布高倍抗锯齿(去马赛克),机器负载大时自动降档保帧率
+        ss = min(SS_MAX, max(1.0, (self._ss_budget / max(1, area)) ** 0.5))
         img = Image.new('RGBA', (int(w * ss), int(h * ss)), (0, 0, 0, 0))
         d = ImageDraw.Draw(img)
 
@@ -128,7 +127,7 @@ class RenderMixin:
             if k == 'text':
                 self._draw_bubble(d, fx, x, y, ss)
         if ss > 1:
-            img = img.resize((w, h), Image.LANCZOS)
+            img = img.resize((w, h), Image.BILINEAR)  # v5.1.2:帧缩放用 BILINEAR(快 2~3 倍,超采样已保平滑)
         return (img, wx, wy)
 
     def _render(self):
