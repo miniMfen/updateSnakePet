@@ -11,31 +11,38 @@ from .sprites import sprite_dir
 
 HATS_SUBDIR = 'hats'
 
-# 默认元数据(与 sprites/hats/hats.json 同构)
+# 默认元数据(与 sprites/hats/hats.json 同构,**两者必须保持同步**)
 # anchor: 相对头半径的佩戴点(x 沿 heading, y 沿头顶方向, 负=向上)
 # pivot: 贴图内的"佩戴线"位置(占图宽/高的比例)——佩戴点对齐该处,默认底边中心(0.5,1.0)
 # pivot_y 越小=帽子相对佩戴点越"抬升"。第一排帽(夜帽/圣诞/皇冠)逐顶校准过。
+#
+# [v5.2 修复 · 头饰歪戴]
+#  - nightcap 原 base_offset_deg=35、santa 原 =30:两顶的画稿本来就是**正立**的
+#    (帽沿水平、绒球居中),这个偏移量是无依据的额外旋转,导致真机上帽子顺时针歪过去,
+#    帽沿斜切过脸、后脑勺空着。实测(3 倍放大 A/B)改为 0 后帽沿水平扣在头顶、脸完全露出。
+#  - crown 原 scale=0.82 / anchor_y=-0.88:它是 7 顶里最小的(渲染高度仅约其他帽的 60%),
+#    且佩戴点偏低显得"卡在脸上"。改为 scale=1.10 / anchor_y=-1.02 后尺寸相称、戴到头顶。
 DEFAULT_REGISTRY = {
-    'nightcap': {'name': '夜帽', 'anchor': [0.0, -0.72], 'scale': 1.25,
-                 'base_offset_deg': 35, 'builtin_fallback': 'nightcap',
+    'nightcap': {'name': '夜帽', 'anchor': [0.0, -0.74], 'scale': 1.25,
+                 'base_offset_deg': 0, 'builtin_fallback': 'nightcap',
                  'pivot': [0.58, 0.92]},
-    'santa': {'name': '圣诞', 'anchor': [0.0, -0.72], 'scale': 1.1,
-              'base_offset_deg': 30, 'builtin_fallback': 'santa',
+    'santa': {'name': '圣诞', 'anchor': [0.0, -0.74], 'scale': 1.1,
+              'base_offset_deg': 0, 'builtin_fallback': 'santa',
               'pivot': [0.5, 0.94]},
-    'crown': {'name': '皇冠', 'anchor': [0.0, -0.88], 'scale': 0.82,
+    'crown': {'name': '皇冠', 'anchor': [0.0, -1.02], 'scale': 1.10,
               'base_offset_deg': 0, 'builtin_fallback': 'crown'},
-    'graduation': {'name': '学士', 'anchor': [0.0, -0.78], 'scale': 1.2,
+    'graduation': {'name': '学士', 'anchor': [0.0, -0.74], 'scale': 1.2,
                    'base_offset_deg': 0, 'builtin_fallback': 'graduation',
                    'pivot': [0.5, 0.62]},
-    'tophat': {'name': '礼帽', 'anchor': [0.0, -0.82], 'scale': 1.1,
+    'tophat': {'name': '礼帽', 'anchor': [0.0, -0.78], 'scale': 1.1,
                'base_offset_deg': 0, 'builtin_fallback': 'tophat',
                'pivot': [0.5, 0.88]},
-    'cap_blue': {'name': '棒球', 'anchor': [0.06, -0.72], 'scale': 1.1,
+    'cap_blue': {'name': '棒球', 'anchor': [0.05, -0.70], 'scale': 1.1,
                  'base_offset_deg': 0, 'builtin_fallback': 'cap_blue',
-                 'pivot': [0.5, 0.7]},
-    'bowknot': {'name': '蝴蝶结', 'anchor': [-0.18, -0.66], 'scale': 0.92,
+                 'pivot': [0.5, 0.70]},
+    'bowknot': {'name': '蝴蝶结', 'anchor': [-0.15, -0.62], 'scale': 0.92,
                 'base_offset_deg': 0, 'builtin_fallback': 'bowknot',
-                'pivot': [0.5, 0.6]},
+                'pivot': [0.5, 0.60]},
 }
 HAT_IDS = tuple(DEFAULT_REGISTRY.keys())
 
@@ -45,14 +52,28 @@ def hats_dir():
 
 
 def load_registry():
-    '''读 hats.json;缺失/损坏回退默认元数据(告警,不抛异常)'''
+    '''读 hats.json;缺失/损坏回退默认元数据(告警,不抛异常)。
+
+    [v5.2 修复] 原先用 `merged.update(data)` 做**整条替换**,而 sprites/hats/hats.json
+    里 7 顶帽子都没写 `pivot` 字段 → DEFAULT_REGISTRY 里逐顶标定好的佩戴线
+    (夜帽 [0.58,0.92] / 圣诞 [0.5,0.94] / 学士 [0.5,0.62] / 礼帽 [0.5,0.88] …)
+    被整条丢掉,全部退回 _auto_pivot 自动检测 —— 也就是**精心校准过的佩戴线从未生效**,
+    这是圣诞帽/夜帽"帽沿斜切过脸"的直接原因之一。
+    改为**逐字段合并**:json 里给出的字段覆盖默认值,未给出的字段(如 pivot)保留默认。
+    '''
     p = os.path.join(hats_dir(), 'hats.json')
     try:
         with open(p, 'r', encoding='utf-8') as f:
             data = json.load(f)
         if isinstance(data, dict) and data:
             merged = {k: dict(v) for k, v in DEFAULT_REGISTRY.items()}
-            merged.update(data)
+            for k, v in data.items():
+                if not isinstance(v, dict):
+                    continue
+                if k in merged:
+                    merged[k].update(v)      # 逐字段覆盖,保留未列出的默认字段
+                else:
+                    merged[k] = dict(v)
             return merged
         logging.warning('hats.json 内容无效,使用默认帽子元数据')
     except FileNotFoundError:

@@ -1,0 +1,207 @@
+{
+  "tag": "OPT08",
+  "mode": "gate",
+  "checked_at": "2026-09-20T16:16:54+08:00",
+  "project": "D:\\aiWorkCode\\professionalWork\\updateSnakePet",
+  "baseline_selfcheck": {
+    "pytest_all_green": true,
+    "selftest_ok": true,
+    "exceptions_empty": true,
+    "skipped": [],
+    "raw_pytest": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT08_pytest.txt",
+    "raw_selftest": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT08_selftest.txt",
+    "raw_soak": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT08_soak.json",
+    "raw_probe": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT08_probe",
+    "all_pass": true
+  },
+  "baseline_selfcheck_pass": true,
+  "compared_against": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\BASELINE_baseline.json",
+  "baseline_tag": "BASELINE",
+  "params_match": true,
+  "checks": [
+    {
+      "id": "M12",
+      "name": "soak_params_match",
+      "gate": "G2",
+      "baseline": {
+        "seconds": 180,
+        "headless": false,
+        "seed": {
+          "body_segs": 8,
+          "satiety": 70.0,
+          "total_eaten": 0,
+          "skin": "jade",
+          "hat": "auto"
+        }
+      },
+      "current": {
+        "seconds": 180,
+        "headless": false,
+        "seed": {
+          "body_segs": 8,
+          "satiety": 70.0,
+          "total_eaten": 0,
+          "skin": "jade",
+          "hat": "auto"
+        }
+      },
+      "rule": "seconds / headless / 初始播种状态 三者都必须与基线一致",
+      "verdict": "PASS",
+      "severity": "INCONCLUSIVE",
+      "note": ""
+    },
+    {
+      "id": "M01",
+      "name": "pytest_passed",
+      "gate": "G1",
+      "baseline": 64,
+      "current": 87,
+      "rule": ">= 基线",
+      "verdict": "PASS",
+      "severity": "FAIL",
+      "note": ""
+    },
+    {
+      "id": "M02",
+      "name": "pytest_failed",
+      "gate": "G1",
+      "baseline": 0,
+      "current": 0,
+      "rule": "== 0",
+      "verdict": "PASS",
+      "severity": "FAIL",
+      "note": ""
+    },
+    {
+      "id": "M03",
+      "name": "selftest_ok",
+      "gate": "G1",
+      "baseline": true,
+      "current": true,
+      "rule": "输出含 'selftest OK' 且 rc==0",
+      "verdict": "PASS",
+      "severity": "FAIL",
+      "note": ""
+    },
+    {
+      "id": "M04",
+      "name": "probe_scenes",
+      "gate": "G3",
+      "baseline": 20,
+      "current": 20,
+      "rule": ">= 基线场景数且无缺失场景",
+      "verdict": "PASS",
+      "severity": "FAIL",
+      "note": ""
+    },
+    {
+      "id": "M05",
+      "name": "frame_ms_avg",
+      "gate": "G2",
+      "baseline": 21.296,
+      "current": 19.549,
+      "rule": "<= 基线 × 1.10（23.426）",
+      "verdict": "PASS",
+      "severity": "FAIL",
+      "note": "★ 主性能指标（每帧实际计算耗时，不受主循环节拍掩盖）"
+    },
+    {
+      "id": "M06",
+      "name": "fps_avg",
+      "gate": "G2",
+      "baseline": 36.09,
+      "current": 37.75,
+      "rule": ">= 基线 × 0.90（32.481）",
+      "verdict": "PASS",
+      "severity": "WARN",
+      "note": "被 sleep/TICK_MS 节拍封顶，仅供旁证"
+    },
+    {
+      "id": "M07",
+      "name": "frame_ms_max",
+      "gate": "G2",
+      "baseline": 71.19,
+      "current": 93.314,
+      "rule": "<= 基线 × 2.00（142.380）",
+      "verdict": "PASS",
+      "severity": "WARN",
+      "note": "尖峰提示"
+    },
+    {
+      "id": "M09",
+      "name": "mem_delta_mb",
+      "gate": "G2",
+      "baseline": 20.8,
+      "current": 5.0,
+      "rule": "<= 基线 + 20MB（40.8）",
+      "verdict": "PASS",
+      "severity": "FAIL",
+      "note": "已知既有疑点 ISS-01：内存随时间增长；判定须结合秒数"
+    },
+    {
+      "id": "M08",
+      "name": "exceptions",
+      "gate": "G2",
+      "baseline": [],
+      "current": [],
+      "rule": "必须为空（非空立即 STOP 转人工）",
+      "verdict": "PASS",
+      "severity": "FAIL",
+      "note": ""
+    },
+    {
+      "id": "M10",
+      "name": "path_max",
+      "gate": "G2",
+      "baseline": "上限 6000",
+      "current": 6000,
+      "rule": "<= 6000",
+      "verdict": "PASS",
+      "severity": "FAIL",
+      "note": ""
+    },
+    {
+      "id": "M11",
+      "name": "fx_max",
+      "gate": "G2",
+      "baseline": "上限 80",
+      "current": 13,
+      "rule": "<= 80",
+      "verdict": "PASS",
+      "severity": "FAIL",
+      "note": ""
+    },
+    {
+      "id": "M13",
+      "name": "interaction_coverage",
+      "gate": "G2",
+      "baseline": {
+        "foods_eaten": 13,
+        "coils": 0,
+        "drags": 31,
+        "pets": 7
+      },
+      "current": {
+        "foods_eaten": 11,
+        "coils": 0,
+        "drags": 13,
+        "pets": 13
+      },
+      "rule": "本轮改动涉及的行为路径，对应计数应 > 0",
+      "verdict": "INFO",
+      "severity": "WARN",
+      "note": "计数为 0 说明该路径本轮根本没被跑到"
+    }
+  ],
+  "counts": {
+    "PASS": 12,
+    "INFO": 1
+  },
+  "gates": {
+    "G1": "PASS",
+    "G2": "PASS",
+    "G3": "PASS"
+  },
+  "overall": "PASS",
+  "note": "本文件由 collect_baseline.py 生成；G3 的像素级观感判定还需 06-evidence/compare_probe.py"
+}

@@ -1,7 +1,7 @@
 {
-  "nightcap": {"name": "夜帽", "anchor": [0.0, -0.74], "scale": 1.25, "base_offset_deg": 35, "builtin_fallback": "nightcap"},
-  "santa": {"name": "圣诞", "anchor": [0.0, -0.74], "scale": 1.1, "base_offset_deg": 30, "builtin_fallback": "santa"},
-  "crown": {"name": "皇冠", "anchor": [0.0, -0.88], "scale": 0.82, "base_offset_deg": 0, "builtin_fallback": "crown"},
+  "nightcap": {"name": "夜帽", "anchor": [0.0, -0.74], "scale": 1.25, "base_offset_deg": 0, "builtin_fallback": "nightcap"},
+  "santa": {"name": "圣诞", "anchor": [0.0, -0.74], "scale": 1.1, "base_offset_deg": 0, "builtin_fallback": "santa"},
+  "crown": {"name": "皇冠", "anchor": [0.0, -1.02], "scale": 1.10, "base_offset_deg": 0, "builtin_fallback": "crown"},
   "graduation": {"name": "学士", "anchor": [0.0, -0.74], "scale": 1.2, "base_offset_deg": 0, "builtin_fallback": "graduation"},
   "tophat": {"name": "礼帽", "anchor": [0.0, -0.78], "scale": 1.1, "base_offset_deg": 0, "builtin_fallback": "tophat"},
   "cap_blue": {"name": "棒球", "anchor": [0.05, -0.7], "scale": 1.1, "base_offset_deg": 0, "builtin_fallback": "cap_blue"},

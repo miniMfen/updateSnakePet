@@ -1,0 +1,837 @@
+{
+  "tag": "OPT08",
+  "checked_at": "2026-09-20T16:11:50+0800",
+  "note": "头饰佩戴接触表:8 朝向 × 全部帽子;数据来自 _render_frame 真实链路",
+  "hats": {
+    "nightcap": {
+      "name": "夜帽",
+      "anchor": [
+        0.0,
+        -0.74
+      ],
+      "scale": 1.25,
+      "base_offset_deg": 35,
+      "pivot": [
+        0.58,
+        0.92
+      ],
+      "cells": [
+        {
+          "angle": 0,
+          "hat_bbox": [
+            0,
+            13,
+            73,
+            70
+          ],
+          "bbox_w": 73,
+          "bbox_h": 57,
+          "top_y": 13,
+          "center_y": 51
+        },
+        {
+          "angle": 45,
+          "hat_bbox": [
+            0,
+            0,
+            90,
+            70
+          ],
+          "bbox_w": 90,
+          "bbox_h": 70,
+          "top_y": 0,
+          "center_y": 51
+        },
+        {
+          "angle": 90,
+          "hat_bbox": [
+            31,
+            0,
+            87,
+            73
+          ],
+          "bbox_w": 56,
+          "bbox_h": 73,
+          "top_y": 0,
+          "center_y": 51
+        },
+        {
+          "angle": 135,
+          "hat_bbox": [
+            31,
+            0,
+            101,
+            81
+          ],
+          "bbox_w": 70,
+          "bbox_h": 81,
+          "top_y": 0,
+          "center_y": 51
+        },
+        {
+          "angle": 180,
+          "hat_bbox": [
+            28,
+            31,
+            101,
+            81
+          ],
+          "bbox_w": 73,
+          "bbox_h": 50,
+          "top_y": 31,
+          "center_y": 51
+        },
+        {
+          "angle": 225,
+          "hat_bbox": [
+            11,
+            31,
+            101,
+            101
+          ],
+          "bbox_w": 90,
+          "bbox_h": 70,
+          "top_y": 31,
+          "center_y": 51
+        },
+        {
+          "angle": 270,
+          "hat_bbox": [
+            13,
+            28,
+            70,
+            101
+          ],
+          "bbox_w": 57,
+          "bbox_h": 73,
+          "top_y": 28,
+          "center_y": 51
+        },
+        {
+          "angle": 315,
+          "hat_bbox": [
+            0,
+            11,
+            70,
+            101
+          ],
+          "bbox_w": 70,
+          "bbox_h": 90,
+          "top_y": 11,
+          "center_y": 51
+        }
+      ]
+    },
+    "santa": {
+      "name": "圣诞",
+      "anchor": [
+        0.0,
+        -0.74
+      ],
+      "scale": 1.1,
+      "base_offset_deg": 30,
+      "pivot": [
+        0.5,
+        0.94
+      ],
+      "cells": [
+        {
+          "angle": 0,
+          "hat_bbox": [
+            0,
+            0,
+            77,
+            70
+          ],
+          "bbox_w": 77,
+          "bbox_h": 70,
+          "top_y": 0,
+          "center_y": 51
+        },
+        {
+          "angle": 45,
+          "hat_bbox": [
+            0,
+            0,
+            101,
+            70
+          ],
+          "bbox_w": 101,
+          "bbox_h": 70,
+          "top_y": 0,
+          "center_y": 51
+        },
+        {
+          "angle": 90,
+          "hat_bbox": [
+            31,
+            0,
+            101,
+            77
+          ],
+          "bbox_w": 70,
+          "bbox_h": 77,
+          "top_y": 0,
+          "center_y": 51
+        },
+        {
+          "angle": 135,
+          "hat_bbox": [
+            31,
+            0,
+            101,
+            81
+          ],
+          "bbox_w": 70,
+          "bbox_h": 81,
+          "top_y": 0,
+          "center_y": 51
+        },
+        {
+          "angle": 180,
+          "hat_bbox": [
+            31,
+            31,
+            101,
+            81
+          ],
+          "bbox_w": 70,
+          "bbox_h": 50,
+          "top_y": 31,
+          "center_y": 51
+        },
+        {
+          "angle": 225,
+          "hat_bbox": [
+            0,
+            31,
+            101,
+            101
+          ],
+          "bbox_w": 101,
+          "bbox_h": 70,
+          "top_y": 31,
+          "center_y": 51
+        },
+        {
+          "angle": 270,
+          "hat_bbox": [
+            0,
+            24,
+            70,
+            101
+          ],
+          "bbox_w": 70,
+          "bbox_h": 77,
+          "top_y": 24,
+          "center_y": 51
+        },
+        {
+          "angle": 315,
+          "hat_bbox": [
+            0,
+            0,
+            70,
+            101
+          ],
+          "bbox_w": 70,
+          "bbox_h": 101,
+          "top_y": 0,
+          "center_y": 51
+        }
+      ]
+    },
+    "crown": {
+      "name": "皇冠",
+      "anchor": [
+        0.0,
+        -0.88
+      ],
+      "scale": 0.82,
+      "base_offset_deg": 0,
+      "pivot": null,
+      "cells": [
+        {
+          "angle": 0,
+          "hat_bbox": [
+            0,
+            27,
+            70,
+            70
+          ],
+          "bbox_w": 70,
+          "bbox_h": 43,
+          "top_y": 27,
+          "center_y": 51
+        },
+        {
+          "angle": 45,
+          "hat_bbox": [
+            0,
+            0,
+            73,
+            70
+          ],
+          "bbox_w": 73,
+          "bbox_h": 70,
+          "top_y": 0,
+          "center_y": 51
+        },
+        {
+          "angle": 90,
+          "hat_bbox": [
+            31,
+            0,
+            74,
+            70
+          ],
+          "bbox_w": 43,
+          "bbox_h": 70,
+          "top_y": 0,
+          "center_y": 51
+        },
+        {
+          "angle": 135,
+          "hat_bbox": [
+            31,
+            0,
+            101,
+            73
+          ],
+          "bbox_w": 70,
+          "bbox_h": 73,
+          "top_y": 0,
+          "center_y": 51
+        },
+        {
+          "angle": 180,
+          "hat_bbox": [
+            31,
+            31,
+            101,
+            74
+          ],
+          "bbox_w": 70,
+          "bbox_h": 43,
+          "top_y": 31,
+          "center_y": 51
+        },
+        {
+          "angle": 225,
+          "hat_bbox": [
+            27,
+            31,
+            101,
+            101
+          ],
+          "bbox_w": 74,
+          "bbox_h": 70,
+          "top_y": 31,
+          "center_y": 51
+        },
+        {
+          "angle": 270,
+          "hat_bbox": [
+            27,
+            31,
+            70,
+            101
+          ],
+          "bbox_w": 43,
+          "bbox_h": 70,
+          "top_y": 31,
+          "center_y": 51
+        },
+        {
+          "angle": 315,
+          "hat_bbox": [
+            0,
+            28,
+            70,
+            101
+          ],
+          "bbox_w": 70,
+          "bbox_h": 73,
+          "top_y": 28,
+          "center_y": 51
+        }
+      ]
+    },
+    "graduation": {
+      "name": "学士",
+      "anchor": [
+        0.0,
+        -0.74
+      ],
+      "scale": 1.2,
+      "base_offset_deg": 0,
+      "pivot": [
+        0.5,
+        0.62
+      ],
+      "cells": [
+        {
+          "angle": 0,
+          "hat_bbox": [
+            0,
+            16,
+            70,
+            70
+          ],
+          "bbox_w": 70,
+          "bbox_h": 54,
+          "top_y": 16,
+          "center_y": 51
+        },
+        {
+          "angle": 45,
+          "hat_bbox": [
+            0,
+            0,
+            82,
+            70
+          ],
+          "bbox_w": 82,
+          "bbox_h": 70,
+          "top_y": 0,
+          "center_y": 51
+        },
+        {
+          "angle": 90,
+          "hat_bbox": [
+            31,
+            0,
+            85,
+            70
+          ],
+          "bbox_w": 54,
+          "bbox_h": 70,
+          "top_y": 0,
+          "center_y": 51
+        },
+        {
+          "angle": 135,
+          "hat_bbox": [
+            31,
+            0,
+            101,
+            81
+          ],
+          "bbox_w": 70,
+          "bbox_h": 81,
+          "top_y": 0,
+          "center_y": 51
+        },
+        {
+          "angle": 180,
+          "hat_bbox": [
+            30,
+            31,
+            101,
+            81
+          ],
+          "bbox_w": 71,
+          "bbox_h": 50,
+          "top_y": 31,
+          "center_y": 51
+        },
+        {
+          "angle": 225,
+          "hat_bbox": [
+            19,
+            31,
+            101,
+            101
+          ],
+          "bbox_w": 82,
+          "bbox_h": 70,
+          "top_y": 31,
+          "center_y": 51
+        },
+        {
+          "angle": 270,
+          "hat_bbox": [
+            16,
+            30,
+            70,
+            101
+          ],
+          "bbox_w": 54,
+          "bbox_h": 71,
+          "top_y": 30,
+          "center_y": 51
+        },
+        {
+          "angle": 315,
+          "hat_bbox": [
+            0,
+            19,
+            70,
+            101
+          ],
+          "bbox_w": 70,
+          "bbox_h": 82,
+          "top_y": 19,
+          "center_y": 51
+        }
+      ]
+    },
+    "tophat": {
+      "name": "礼帽",
+      "anchor": [
+        0.0,
+        -0.78
+      ],
+      "scale": 1.1,
+      "base_offset_deg": 0,
+      "pivot": [
+        0.5,
+        0.88
+      ],
+      "cells": [
+        {
+          "angle": 0,
+          "hat_bbox": [
+            0,
+            7,
+            70,
+            70
+          ],
+          "bbox_w": 70,
+          "bbox_h": 63,
+          "top_y": 7,
+          "center_y": 51
+        },
+        {
+          "angle": 45,
+          "hat_bbox": [
+            0,
+            0,
+            88,
+            70
+          ],
+          "bbox_w": 88,
+          "bbox_h": 70,
+          "top_y": 0,
+          "center_y": 51
+        },
+        {
+          "angle": 90,
+          "hat_bbox": [
+            31,
+            0,
+            94,
+            70
+          ],
+          "bbox_w": 63,
+          "bbox_h": 70,
+          "top_y": 0,
+          "center_y": 51
+        },
+        {
+          "angle": 135,
+          "hat_bbox": [
+            31,
+            0,
+            101,
+            81
+          ],
+          "bbox_w": 70,
+          "bbox_h": 81,
+          "top_y": 0,
+          "center_y": 51
+        },
+        {
+          "angle": 180,
+          "hat_bbox": [
+            31,
+            31,
+            101,
+            81
+          ],
+          "bbox_w": 70,
+          "bbox_h": 50,
+          "top_y": 31,
+          "center_y": 51
+        },
+        {
+          "angle": 225,
+          "hat_bbox": [
+            13,
+            31,
+            101,
+            101
+          ],
+          "bbox_w": 88,
+          "bbox_h": 70,
+          "top_y": 31,
+          "center_y": 51
+        },
+        {
+          "angle": 270,
+          "hat_bbox": [
+            7,
+            31,
+            70,
+            101
+          ],
+          "bbox_w": 63,
+          "bbox_h": 70,
+          "top_y": 31,
+          "center_y": 51
+        },
+        {
+          "angle": 315,
+          "hat_bbox": [
+            0,
+            13,
+            70,
+            101
+          ],
+          "bbox_w": 70,
+          "bbox_h": 88,
+          "top_y": 13,
+          "center_y": 51
+        }
+      ]
+    },
+    "cap_blue": {
+      "name": "棒球",
+      "anchor": [
+        0.05,
+        -0.7
+      ],
+      "scale": 1.1,
+      "base_offset_deg": 0,
+      "pivot": [
+        0.5,
+        0.7
+      ],
+      "cells": [
+        {
+          "angle": 0,
+          "hat_bbox": [
+            0,
+            22,
+            70,
+            70
+          ],
+          "bbox_w": 70,
+          "bbox_h": 48,
+          "top_y": 22,
+          "center_y": 51
+        },
+        {
+          "angle": 45,
+          "hat_bbox": [
+            0,
+            0,
+            78,
+            70
+          ],
+          "bbox_w": 78,
+          "bbox_h": 70,
+          "top_y": 0,
+          "center_y": 51
+        },
+        {
+          "angle": 90,
+          "hat_bbox": [
+            31,
+            0,
+            79,
+            70
+          ],
+          "bbox_w": 48,
+          "bbox_h": 70,
+          "top_y": 0,
+          "center_y": 51
+        },
+        {
+          "angle": 135,
+          "hat_bbox": [
+            31,
+            0,
+            101,
+            78
+          ],
+          "bbox_w": 70,
+          "bbox_h": 78,
+          "top_y": 0,
+          "center_y": 51
+        },
+        {
+          "angle": 180,
+          "hat_bbox": [
+            31,
+            31,
+            101,
+            79
+          ],
+          "bbox_w": 70,
+          "bbox_h": 48,
+          "top_y": 31,
+          "center_y": 51
+        },
+        {
+          "angle": 225,
+          "hat_bbox": [
+            23,
+            31,
+            101,
+            101
+          ],
+          "bbox_w": 78,
+          "bbox_h": 70,
+          "top_y": 31,
+          "center_y": 51
+        },
+        {
+          "angle": 270,
+          "hat_bbox": [
+            22,
+            31,
+            70,
+            101
+          ],
+          "bbox_w": 48,
+          "bbox_h": 70,
+          "top_y": 31,
+          "center_y": 51
+        },
+        {
+          "angle": 315,
+          "hat_bbox": [
+            0,
+            23,
+            70,
+            101
+          ],
+          "bbox_w": 70,
+          "bbox_h": 78,
+          "top_y": 23,
+          "center_y": 51
+        }
+      ]
+    },
+    "bowknot": {
+      "name": "蝴蝶结",
+      "anchor": [
+        -0.15,
+        -0.62
+      ],
+      "scale": 0.92,
+      "base_offset_deg": 0,
+      "pivot": [
+        0.5,
+        0.6
+      ],
+      "cells": [
+        {
+          "angle": 0,
+          "hat_bbox": [
+            0,
+            24,
+            70,
+            70
+          ],
+          "bbox_w": 70,
+          "bbox_h": 46,
+          "top_y": 24,
+          "center_y": 51
+        },
+        {
+          "angle": 45,
+          "hat_bbox": [
+            0,
+            0,
+            76,
+            70
+          ],
+          "bbox_w": 76,
+          "bbox_h": 70,
+          "top_y": 0,
+          "center_y": 51
+        },
+        {
+          "angle": 90,
+          "hat_bbox": [
+            31,
+            0,
+            76,
+            70
+          ],
+          "bbox_w": 45,
+          "bbox_h": 70,
+          "top_y": 0,
+          "center_y": 51
+        },
+        {
+          "angle": 135,
+          "hat_bbox": [
+            31,
+            0,
+            101,
+            76
+          ],
+          "bbox_w": 70,
+          "bbox_h": 76,
+          "top_y": 0,
+          "center_y": 51
+        },
+        {
+          "angle": 180,
+          "hat_bbox": [
+            31,
+            31,
+            101,
+            76
+          ],
+          "bbox_w": 70,
+          "bbox_h": 45,
+          "top_y": 31,
+          "center_y": 51
+        },
+        {
+          "angle": 225,
+          "hat_bbox": [
+            25,
+            31,
+            101,
+            101
+          ],
+          "bbox_w": 76,
+          "bbox_h": 70,
+          "top_y": 31,
+          "center_y": 51
+        },
+        {
+          "angle": 270,
+          "hat_bbox": [
+            24,
+            31,
+            70,
+            101
+          ],
+          "bbox_w": 46,
+          "bbox_h": 70,
+          "top_y": 31,
+          "center_y": 51
+        },
+        {
+          "angle": 315,
+          "hat_bbox": [
+            0,
+            25,
+            70,
+            101
+          ],
+          "bbox_w": 70,
+          "bbox_h": 76,
+          "top_y": 25,
+          "center_y": 51
+        }
+      ]
+    }
+  }
+}
