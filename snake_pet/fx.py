@@ -13,7 +13,7 @@ class FxMixin:
             'x': x,
             'y': y,
             't': 0,
-            'max': 45,
+            'max': 33,  # v5.3 帧率翻倍:帧计数时长 ×16/22(45→33),真实秒数不变
         }
         fx.update(kw)
         self.fx.append(fx)
@@ -22,17 +22,18 @@ class FxMixin:
 
     def _spawn_particles(self, x, y, n=4):
         '''进食/唤醒时的彩色小星星/爱心粒子,向上飘散'''
+        # v5.3:速度(px/帧)与寿命(帧)均 ×16/22,飘散的真实速度/时长不变
         for _ in range(n):
             kind = random.choice(('star', 'heart'))
             ang = random.uniform(-math.pi * 0.85, 0)
-            sp = random.uniform(1, 2.6)
+            sp = random.uniform(0.73, 1.89)
             self._spawn_fx(kind, x, y, vx=math.cos(ang) * sp, vy=math.sin(ang) * sp,
                            size=random.uniform(4, 7), color=random.choice(FX_COLORS),
-                           max=random.randint(36, 52), seed=random.random())
+                           max=random.randint(26, 38), seed=random.random())
 
     def _spawn_bubble(self, text):
         (hx, hy) = self.snake.head()
-        self._spawn_fx('text', hx, hy - 42, text=text, max=80, size=4)
+        self._spawn_fx('text', hx, hy - 42, text=text, max=58, size=4)
 
     def _aging(self):
         '''所有临时特效与状态帧的老化回收(防内存泄漏)'''

@@ -19,38 +19,42 @@ MAX_PATH = 6000       # 轨迹点上限
 PAD = 30              # 窗口外边距
 
 # ---- 帧率与步速 ----
-TICK_MS = 22          # 帧间隔(约 45fps 目标,v5.1 由 33 提升)
-QUIET_STEP = 1.6      # 安静档步速(px/帧)
-ACTIVE_STEP = 9.5     # 活跃档步速(px/帧)
+# v5.3(video2x-hd):帧率 45fps→62.5fps(TICK_MS 22→16)。
+# 本表所有「每帧」量已等比 ×16/22(≈0.7273),真实时间速度与 45fps 时代一致:
+#   步速与每帧转角同缩 → 转弯半径不变;帧计数周期同缩 → 秒数不变。
+TICK_MS = 16          # 帧间隔(约 62.5fps 目标,v5.3 由 22 提升)
+QUIET_STEP = 1.16     # 安静档步速(px/帧)(1.6 × 16/22)
+ACTIVE_STEP = 6.91    # 活跃档步速(px/帧)(9.5 × 16/22)
 
 # v4 的 DIRS 四方向格点移动与 SPIN_DIRS 8 方向打转已在 P1/P2 移除,
 # 由连续角度转向(heading_angle + steer)与分层盘旋(CoilPlan)替代。
 
 # ---- P1 360° 转向参数(供调参) ----
 # 转弯半径 = 步速 / 每帧转角:v5.1.1 调低转角使弧线更大更圆滑(参考贪吃蛇网游的顺滑弯)
-MAX_TURN_QUIET = 0.045       # 安静档每帧最大转角(rad,半径≈36px)
-MAX_TURN_ACTIVE = 0.095      # 活跃档每帧最大转角(rad,半径≈100px)
-MIN_TURN_DEADZONE = 0.06     # 最小转弯角度(rad,约 3.4°):低于它不转向,消除细碎抖弯
-WANDER_DRIFT_SIGMA = 0.016   # 闲逛每帧目标角高斯抖动(rad,v5.1.1 调低更顺滑)
-WANDER_BIAS_INTERVAL = (90, 220)  # 趋势角重置周期(帧)
+# v5.3:转角/抖动/周期全部 ×16/22,转弯半径与秒级节奏保持不变
+MAX_TURN_QUIET = 0.033       # 安静档每帧最大转角(rad,半径≈35px)(0.045 × 16/22)
+MAX_TURN_ACTIVE = 0.069      # 活跃档每帧最大转角(rad,半径≈100px)(0.095 × 16/22)
+MIN_TURN_DEADZONE = 0.044    # 最小转弯角度(rad,约 2.5°):低于它不转向,消除细碎抖弯(0.06 × 16/22)
+WANDER_DRIFT_SIGMA = 0.012   # 闲逛每帧目标角高斯抖动(rad,v5.1.1 调低更顺滑)(0.016 × 16/22)
+WANDER_BIAS_INTERVAL = (65, 160)  # 趋势角重置周期(帧)((90,220) × 16/22)
 WANDER_BIAS_RANGE = math.pi * 2 / 3  # 趋势角重置偏摆幅(±120°)
 EDGE_INFLUENCE = 60          # 边界内推起始距离(px)
 EDGE_PUSH_GAIN = 1.6         # 内推场增益(越贴边转得越急)
-STALL_TIMEOUT = 60           # 追食卡死判定(帧)
+STALL_TIMEOUT = 44           # 追食卡死判定(帧)(60 × 16/22)
 
 # ---- P2 分层盘旋参数 ----
-MAX_TURN_COIL = 0.25         # 盘旋档每帧最大转角(rad)
+MAX_TURN_COIL = 0.182        # 盘旋档每帧最大转角(rad)(0.25 × 16/22)
 COIL_R0_RANGE = (60, 100)    # 盘旋外圈半径随机范围(px,约 80±20)
 COIL_R_MIN_FACTOR = 2.2      # 最小圈半径 = 系数 × BODY_R(保证圈间有缝)
 COIL_GAP_FACTOR = 1.9        # 圈距 = 系数 × BODY_R(≥1.6 即达标,留裕量)
-COIL_OMEGA_RANGE = (2.0, 2.6)  # 角速度范围(rad/s)
+COIL_OMEGA_RANGE = (2.0, 2.6)  # 角速度范围(rad/s,真实时间单位,不缩放)
 COIL_MARGIN_FACTOR = 2.5     # 外接圆余量 = 系数 × BODY_R
 COIL_DEVIATION_ABORT = 60    # 期望点偏差超过该值 → 快速盘出(px)
-COIL_CARROT_LOOK = 6         # 胡萝卜前视帧数(头自身角度前方 ω×look 处)
-COIL_ABORT_GRACE_FRAMES = 15 # 起步宽限帧数(对准切线前不判中断)
+COIL_CARROT_LOOK = 4         # 胡萝卜前视帧数(头自身角度前方 ω×look 处)(6 × 16/22)
+COIL_ABORT_GRACE_FRAMES = 11 # 起步宽限帧数(对准切线前不判中断)(15 × 16/22)
 COIL_ABORT_GRACE_DIST = 150  # 起步宽限内的中断距离阈值(px)
-COIL_DWELL_RANGE = (60, 150) # 盘踞时长(帧,约 2~5s)
-COIL_OUT_RANGE = (40, 70)    # 盘出时长(帧)
+COIL_DWELL_RANGE = (44, 109) # 盘踞时长(帧,约 1.1~2.8s)((60,150) × 16/22)
+COIL_OUT_RANGE = (29, 51)    # 盘出时长(帧)((40,70) × 16/22)
 COIL_MAX_SEGS_SMALL = 10     # 体长 ≤ 该节数 → 降级为小圈
 
 # ---- 经典绿系配色(v4 原配色,保留为主题2) ----
@@ -190,8 +194,8 @@ SHELL_OVERLAY_CLASSES = ('ShellHandwritingCanvas',)   # 已知 shell 覆盖层�
 # ---- P3 身体绘制规格 ----
 TAPER_TAIL = 0.55           # 身体锥形:尾端半径系数(头=1.0)
 PATTERN_EVERY = 4           # 背部菱形斑间隔(采样节)
-TONGUE_PERIOD = (240, 420)  # 吐信周期(帧,约 4~7s)
-TONGUE_FRAMES = 8           # 吐信持续帧数
+TONGUE_PERIOD = (175, 305)  # 吐信周期(帧,约 4~7s)((240,420) × 16/22)
+TONGUE_FRAMES = 6           # 吐信持续帧数(8 × 16/22)
 
 # ---- P6 养成数值表(与 tasks/P6_GROWTH.md §1 对应) ----
 DIGEST_PX_PER_SEC = 2       # 消化速率:body_len 每秒回落像素
@@ -235,8 +239,11 @@ DEFAULT_CFG = {
     'ver': 5,
 }
 
-# ---- 渲染画质(v5.1.2) ----
-SS_PIXEL_BUDGET = 1400000   # 单帧渲染像素预算初始值(自适应调节)
-SS_BUDGET_MIN = 400000      # 预算下限(帧率优先)
-SS_BUDGET_MAX = 2600000     # 预算上限(画质优先,机器快时自动提高)
-SS_MAX = 2.0                # 超采样上限(小画布 2× 抗锯齿)
+# ---- 渲染画质(v5.1.2;v5.3 提升 AA 上限与预算下限去马赛克) ----
+# 马赛克感根因:长蛇画布大 → sqrt(预算/面积) < 1 被钳到 1.0 → 零抗锯齿。
+# v5.3:下限 40万→70万(中大画布保底 ≥1.05x AA),上限 2x→3x(小画布 3x 抗锯齿),
+# 初始/上限预算同步上调;预算仍随实测帧耗时自适应,慢机器自动回落保帧率。
+SS_PIXEL_BUDGET = 1600000   # 单帧渲染像素预算初始值(自适应调节)
+SS_BUDGET_MIN = 700000      # 预算下限(画质保底,原 40 万在长蛇画布会跌到零抗锯齿)
+SS_BUDGET_MAX = 3200000     # 预算上限(画质优先,机器快时自动提高)
+SS_MAX = 3.0                # 超采样上限(小画布 3× 抗锯齿)
