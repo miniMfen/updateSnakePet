@@ -167,6 +167,20 @@ SATIETY_DECAY_PER_SEC = 0.1
 MOOD_HAPPY = 60
 MOOD_HUNGRY = 30
 
+# ---- v5.2 睡觉流程(需求1:先盘旋 → 打呼噜 → 冷却) ----
+# 旧行为:satiety 归零即刻就地入睡,睡 15~25s,无频率控制 → 用户反馈「跑着跑着直接打呼噜」
+SLEEP_DUR_RANGE = (6.0, 12.0)           # 打呼噜时长(秒);从**盘旋结束**开始计时
+SLEEP_COOLDOWN_RANGE = (300.0, 480.0)   # 唤醒后到下次允许入睡的最短冷却(秒,5~8min)
+SLEEP_COIL_ATTEMPTS = 5                 # 入睡前最多尝试起盘次数,超限降级为直接入睡
+SLEEP_COIL_RETRY_MS = 1200              # 起盘重试间隔(毫秒)
+
+# ---- v5.2 避让:全屏透明覆盖层排除(AMD-01,见 run 的 scope/change_list.yaml) ----
+# Windows 11 的 ShellHandwritingCanvas 等输入层用「全屏 + 置顶 + 分层」实现,
+# 若计入避让会把整个工作区变成障碍 → make_coil_plan 恒返回 None。
+# 实测(2026-09-20): 该窗口外扩 240px 后 = (-240,-240,1947,1307),幼蛇可用盘旋中心 0/2240 → 盘旋 100% 失效。
+FULLSCREEN_OVERLAY_COVER_RATIO = 0.92   # 覆盖面积 / 虚拟屏面积 ≥ 此值 → 视为覆盖层,不避让
+SHELL_OVERLAY_CLASSES = ('ShellHandwritingCanvas',)   # 已知 shell 覆盖层类名前缀
+
 # ---- P3 身体绘制规格 ----
 TAPER_TAIL = 0.55           # 身体锥形:尾端半径系数(头=1.0)
 PATTERN_EVERY = 4           # 背部菱形斑间隔(采样节)

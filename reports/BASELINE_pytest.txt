@@ -1,0 +1,4 @@
+................................................................         [100%][safe-delete][SAFE_DELETE_FAIL_CLOSED] {"target": "\\\\?\\C:\\Users\\42884\\AppData\\Local\\Temp\\pytest-of-42884\\garbage-a04272de-9c6e-4c2c-b16e-84625bc3dda3", "reason": "windows-sandbox-recycle-bin-unavailable"}
+[safe-delete][SAFE_DELETE_FAIL_CLOSED] {"target": "\\\\?\\C:\\Users\\42884\\AppData\\Local\\Temp\\pytest-of-42884\\garbage-9850137b-661e-421d-adf8-81bf415f3f88", "reason": "windows-sandbox-recycle-bin-unavailable"}
+
+64 passed in 2.03s

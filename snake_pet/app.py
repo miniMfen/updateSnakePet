@@ -13,8 +13,9 @@ from ctypes import wintypes
 from .behavior import BehaviorMixin
 from .config import base_dir, config_path, load_config, save_config
 from .constants import (ACHIEVEMENTS, ACTIVE_STEP, APP_NAME, BODY_START_SEG, FX_COLORS,
-                        GROW_PER_FOOD, HEAD_R, MARGIN, MAX_PATH, QUIET_STEP,
-                        SATIETY_DECAY_PER_SEC, SATIETY_START, SEG, SAVE_PERIOD_SEC,
+                        FULLSCREEN_OVERLAY_COVER_RATIO, GROW_PER_FOOD, HEAD_R, MARGIN,
+                        MAX_PATH, QUIET_STEP, SATIETY_DECAY_PER_SEC, SATIETY_START, SEG,
+                        SAVE_PERIOD_SEC, SHELL_OVERLAY_CLASSES,
                         SS_BUDGET_MAX, SS_BUDGET_MIN, SS_PIXEL_BUDGET, TONGUE_PERIOD, TICK_MS)
 from .fx import FxMixin
 from .growth import (Achievements, digest_step, fatness_of, load_pet_state, save_pet_state,
@@ -27,7 +28,8 @@ from .platform_win import (BITMAPINFOHEADER, HOOKPROC, MSLLHOOKSTRUCT, PM_REMOVE
                            WM_RBUTTONDOWN, WS_EX_LAYERED,
                            WS_EX_TOPMOST, ULW_ALPHA, _BLEND, acquire_single_instance_mutex,
                            create_layered_window, destroy_window, ensure_dpi_aware,
-                           enum_topmost_layered_windows, grab_screen_bgra, is_desktop_window,
+                           enum_topmost_layered_windows, get_class_name, grab_screen_bgra,
+                           is_desktop_window,
                            is_window_visible, primary_screen_metric, sink_window_bottom,
                            untopmost_window, virtual_screen, window_from_point, workarea)
 from .render import RenderMixin
@@ -83,6 +85,13 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
         self._hungry_timer = random.randint(360, 660)
         self._sleep_since = None
         self._sleep_dur = 20
+        # v5.2 睡觉三阶段状态机(需求1):None → 'coiling'(入睡前盘旋) → 'dozing'(打呼噜) → 冷却
+        self._sleep_phase = None
+        self._sleep_cooldown_until = 0.0
+        self._coil_started = False
+        self._coil_attempts = 0
+        self._coil_retry_at = 0.0
+        self._coil_began = 0.0
         self._zdan_timer = 0
         self._zzz_timer = random.randint(240, 480)
         self._last_lclick = 0
@@ -477,23 +486,16 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
                     self._ss_budget = min(SS_BUDGET_MAX, self._ss_budget * 1.10)
 
     def _step_impl(self):
-        if self._is_sleeping():
+        now = time.monotonic()
+        if self._is_dozing():
             self.satiety = 0.0
         else:
             self.satiety = max(0.0, self.satiety - SATIETY_DECAY_PER_SEC * TICK_MS / 1000.0)
-        sleeping = self._is_sleeping()
+        # v5.2(需求1):先盘旋 → 打呼噜 6~12s(从盘旋结束计时) → 冷却 5~8min
+        # 注意此时不能早退:盘旋准备期必须走正常运动分支,否则盘旋推进不了
+        dozing = self._sleep_step(now)
         self._mood_timers()
-        if sleeping:
-            now = time.monotonic()
-            if self._sleep_since is None:
-                self._sleep_since = now
-                self._sleep_dur = random.uniform(15.0, 25.0)
-            elif now - self._sleep_since >= self._sleep_dur:
-                self._sleep_since = None
-                self.satiety = random.uniform(25.0, 45.0)
-                (hx, hy) = self.snake.head()
-                self._spawn_particles(hx, hy - 10, 3)
-                logging.info('睡醒啦(睡了 %.0f 秒)', self._sleep_dur)
+        if dozing:
             self._zdan_timer -= 1
             if self._zdan_timer <= 0:
                 self._zdan_timer = random.randint(18, 26)
@@ -514,7 +516,6 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
         else:
             # [P0-确认] 依据 dis_step.txt 行 1736:auto 档 = 有食物且允许进食才活跃
             active = bool(self.foods) and (not self.cfg['no_eat'])
-        now = time.monotonic()
         if now - self._last_check >= 1.0:
             self._last_check = now
             self._refresh_avoid()
@@ -570,6 +571,7 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
         if self.headless:
             return
         self._avoid = []
+        screen_area = max(1.0, float(self.vw) * float(self.vh))
         for (hwnd, ex, rect) in enum_topmost_layered_windows():
             if hwnd == self._hwnd or hwnd == self._menu_hwnd:
                 continue
@@ -580,8 +582,18 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
             if not ex & WS_EX_LAYERED:
                 continue
             (l, t, r, b) = rect
-            if r - l > 8 and b - t > 8:
-                self._avoid.append((l - 240, t - 240, r + 240, b + 240))
+            if r - l <= 8 or b - t <= 8:
+                continue
+            # v5.2(AMD-01):排除「全屏透明覆盖层」。
+            # Windows 11 的 ShellHandwritingCanvas(手写墨迹输入层)等用「全屏+置顶+分层」实现,
+            # 外扩 240px 后覆盖整个工作区 → make_coil_plan 的 5 个候选方向全被判定 blocked
+            # → 返回 None → 盘旋 100% 失效。实测(2026-09-20)可用盘旋中心 0/2240。
+            cls = get_class_name(hwnd)
+            if any(cls.startswith(p) for p in SHELL_OVERLAY_CLASSES):
+                continue
+            if float(r - l) * float(b - t) >= FULLSCREEN_OVERLAY_COVER_RATIO * screen_area:
+                continue
+            self._avoid.append((l - 240, t - 240, r + 240, b + 240))
 
     # ---- 合成自愈看门狗 ----
     def _self_check(self):

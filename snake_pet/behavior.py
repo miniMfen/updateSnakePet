@@ -5,28 +5,111 @@ import random
 import time
 
 from .constants import (MAX_FOODS, MOOD_HAPPY, MOOD_HUNGRY, FX_COLORS, SATIETY_GAIN,
-                        SATIETY_MAX)
+                        SATIETY_MAX, SLEEP_COIL_ATTEMPTS, SLEEP_COIL_RETRY_MS,
+                        SLEEP_COOLDOWN_RANGE, SLEEP_DUR_RANGE, TICK_MS)
 from .growth import stage_of
 
 
 class BehaviorMixin:
     def _is_sleeping(self):
+        '''饱食度归零 = 想睡(饿到极限)。**语义与 v5.1 保持一致**,既有测试依赖它。'''
         return self.satiety <= 0
 
+    def _is_dozing(self):
+        '''v5.2:是否正在打呼噜。复用 _sleep_since 的非空语义 —— v5.2 之前它就是
+        「已进入睡眠计时」的标志(渲染探针也用它伪造睡眠场景),因此保持这条等价关系
+        既让探针无需改动,也让「想睡」与「正在睡」两个概念彻底分开。'''
+        return self._sleep_since is not None
+
     def _mood(self):
+        if self._is_dozing():
+            return 'sleep'
         if self.satiety >= MOOD_HAPPY:
             return 'happy'
         if self.satiety >= MOOD_HUNGRY:
             return 'normal'
-        if self.satiety > 0:
-            return 'hungry'
-        return 'sleep'
+        return 'hungry'      # v5.2:satiety==0 但还没睡着(含入睡前盘旋) → 睁眼显示饿,不再直接闭眼
 
     def _wake(self):
+        self._sleep_phase = None
         self._sleep_since = None
+        self._coil_started = False
+        self._sleep_cooldown_until = time.monotonic() + random.uniform(*SLEEP_COOLDOWN_RANGE)
         self.satiety = max(self.satiety, 15)
         (hx, hy) = self.snake.head()
         self._spawn_particles(hx, hy - 10, 3)
+
+    # ---- v5.2 睡觉三阶段状态机(需求1) ----
+    def _sleep_step(self, now):
+        '''空闲 → 盘旋准备('coiling') → 打呼噜('dozing') → 冷却。
+        返回 True 表示正在打呼噜,调用方应跳过运动/进食。
+
+        用户诉求:睡觉前必须先盘旋;睡 6~12s(从盘旋结束计时);别太频繁。
+        盘旋起不来时不空转 —— 重试 SLEEP_COIL_ATTEMPTS 次后降级为直接入睡(记日志)。
+        '''
+        # 0) 盘旋准备期吃到东西 → 放弃这次入睡(吃东西自然会醒)
+        if self._sleep_phase == 'coiling' and not self._is_sleeping():
+            if self.snake.coil is not None:
+                self.snake.coil.fast_unwind()
+            logging.info('吃东西了,不睡了(取消入睡前盘旋)')
+            self._sleep_phase = None
+
+        # 1) 饿了 且 冷却已过 → 进入盘旋准备
+        if self._sleep_phase is None and self._is_sleeping() and now >= self._sleep_cooldown_until:
+            self._sleep_phase = 'coiling'
+            self._coil_started = False
+            self._coil_attempts = 0
+            self._coil_retry_at = 0.0
+            self._coil_began = 0.0
+            logging.info('困了:先盘旋再睡')
+
+        # 2) 盘旋准备
+        if self._sleep_phase == 'coiling':
+            if self._coil_started:
+                if self.snake.coil is None:       # 盘完(自然结束或快速盘出)
+                    self._begin_doze(now)
+            elif now >= self._coil_retry_at:
+                self._coil_retry_at = now + SLEEP_COIL_RETRY_MS / 1000.0
+                self._coil_attempts += 1
+                self._start_coil()
+                self._coil_started = self.snake.coil is not None
+                if self._coil_started:
+                    self._coil_began = now
+                elif self._coil_attempts >= SLEEP_COIL_ATTEMPTS:
+                    logging.info('盘旋起不来(尝试 %d 次),降级为直接入睡', self._coil_attempts)
+                    self._begin_doze(now)
+
+        # 3) 打呼噜
+        if self._sleep_phase == 'dozing':
+            if self._sleep_since is None:
+                self._sleep_since = now
+            if now - self._sleep_since >= self._sleep_dur:
+                self._end_doze(now)
+            else:
+                return True
+        return False
+
+    def _begin_doze(self, now):
+        '''盘旋结束 → 开始打呼噜。睡长在此刻抽取(6~12s 随机)。'''
+        self._sleep_phase = 'dozing'
+        self._sleep_since = now
+        self._sleep_dur = random.uniform(*SLEEP_DUR_RANGE)
+        self.snake.coil = None
+        self._zdan_timer = 0                      # 立刻起第一发 Z 弹幕
+        coil_sec = (now - self._coil_began) if self._coil_began else 0.0
+        logging.info('盘旋 %.1fs 结束 → 开始打呼噜,睡 %.1fs', coil_sec, self._sleep_dur)
+
+    def _end_doze(self, now):
+        '''睡醒:抬高饱食度 + 设冷却,避免立刻又想睡。'''
+        self._sleep_phase = None
+        self._sleep_since = None
+        self._coil_started = False
+        self._sleep_cooldown_until = now + random.uniform(*SLEEP_COOLDOWN_RANGE)
+        self.satiety = random.uniform(25.0, 45.0)
+        (hx, hy) = self.snake.head()
+        self._spawn_particles(hx, hy - 10, 3)
+        logging.info('睡醒啦(睡了 %.1f 秒),冷却 %.1f 秒后才可能再困',
+                     self._sleep_dur, self._sleep_cooldown_until - now)
 
     def _mood_timers(self):
         # [P0-确认] 依据字节码 `_mood_timers`:仅当 无食物/未盘旋/未睡觉 时倒计时,
@@ -62,6 +145,8 @@ class BehaviorMixin:
     def _do_idle(self):
         '''空闲小动作(无食物且非睡,每 600~1200 帧触发):吐泡泡/歪头/分层盘旋。
         盘旋权重 2/4:它是 v5 招牌行为(用户点名),且仅在真正空闲时发生'''
+        if self._sleep_phase is not None:
+            return                     # v5.2:入睡流程进行中(盘旋准备期),不再插入其它空闲动作
         act = random.choice(('bubble', 'tilt', 'coil', 'coil'))
         (hx, hy) = self.snake.head()
         if act == 'bubble':
@@ -76,8 +161,10 @@ class BehaviorMixin:
 
     # ---- 分层盘旋(P2) ----
     def _start_coil(self):
-        '''触发盘旋:睡觉中/摆尾动画中/已在盘旋 → 忽略;空间不足由 make_coil_plan 取消'''
-        if self._is_sleeping() or self.wag > 0 or self.snake.coil is not None:
+        '''触发盘旋:打呼噜中/摆尾动画中/已在盘旋 → 忽略;空间不足由 make_coil_plan 取消。
+        v5.2:守卫由 _is_sleeping() 改为 _is_dozing() —— 否则「入睡前盘旋准备」会被自己拦住
+        (准备期 satiety 仍为 0,但此时蛇是清醒的,必须允许起盘)。'''
+        if self._is_dozing() or self.wag > 0 or self.snake.coil is not None:
             return
         plan = self.snake.make_coil_plan()
         if plan is None:

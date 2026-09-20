@@ -1,0 +1,113 @@
+{
+  "tag": "OPT01",
+  "gate": "sleepflow",
+  "checked_at": "2026-09-20T12:22:10+0800",
+  "project": "D:/aiWorkCode/professionalWork/updateSnakePet",
+  "bounds": [
+    26,
+    26,
+    2534,
+    1502
+  ],
+  "expect": {
+    "sleep_dur_range": [
+      6.0,
+      12.0
+    ],
+    "cooldown_range": [
+      300.0,
+      480.0
+    ]
+  },
+  "avoid_rects_after_fix": 0,
+  "cycle1": {
+    "label": "cycle-1",
+    "phase_seq": [
+      {
+        "t": 0.003,
+        "phase": "coiling"
+      },
+      {
+        "t": 5.073,
+        "phase": "dozing"
+      },
+      {
+        "t": 12.24,
+        "phase": null
+      }
+    ],
+    "coil_seen": true,
+    "doze_start": 5.0730576000059955,
+    "doze_end": 12.240244499989785,
+    "coil_attempts": 1,
+    "degraded": false,
+    "sleep_dur_drawn": 7.135620594726249,
+    "actual_doze_s": 7.167,
+    "cooldown_set_s": 444.249
+  },
+  "cycle2_cooldown_blocks_resleep": true,
+  "cycle3": {
+    "label": "cycle-3",
+    "phase_seq": [
+      {
+        "t": 0.003,
+        "phase": "coiling"
+      },
+      {
+        "t": 5.101,
+        "phase": "dozing"
+      },
+      {
+        "t": 16.291,
+        "phase": null
+      }
+    ],
+    "coil_seen": true,
+    "doze_start": 5.100824099994497,
+    "doze_end": 16.29090009999345,
+    "coil_attempts": 1,
+    "degraded": false,
+    "sleep_dur_drawn": 11.153625434755106,
+    "actual_doze_s": 11.19,
+    "cooldown_set_s": 316.74
+  },
+  "checks": [
+    {
+      "id": "S1",
+      "desc": "入睡前确实起了盘旋（coil 被激活过）",
+      "pass": true,
+      "detail": "coil_seen=True, 起盘尝试=1"
+    },
+    {
+      "id": "S2",
+      "desc": "相位顺序为 coiling → dozing → None",
+      "pass": true,
+      "detail": "实际 ['coiling', 'dozing', None]"
+    },
+    {
+      "id": "S3",
+      "desc": "睡眠时长落在 [6, 12] 秒",
+      "pass": true,
+      "detail": "实测 7.167 s（抽签值 7.14）"
+    },
+    {
+      "id": "S4",
+      "desc": "唤醒后设置了 300~480 秒冷却",
+      "pass": true,
+      "detail": "实测 444.249 s"
+    },
+    {
+      "id": "S5",
+      "desc": "冷却期内不会立刻再次入睡",
+      "pass": true,
+      "detail": "blocked=True"
+    },
+    {
+      "id": "S6",
+      "desc": "流程可重复（第 3 轮同样完成）",
+      "pass": true,
+      "detail": "coil_seen=True doze=11.19"
+    }
+  ],
+  "overall": "PASS"
+}
