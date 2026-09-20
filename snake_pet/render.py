@@ -260,8 +260,22 @@ class RenderMixin:
 
     def _sample_body(self, rp, d0, step, body_len):
         '''沿平滑轨迹按弧长采样身体点(世界坐标), 返回点列表。
-        v5.1.1:身体长超过轨迹 XY 弧长时(补长被边界钳制/起步阶段),
-        采样起点钳到路径起点——身体铺满全部轨迹,保证与头部衔接不脱节'''
+
+        body_len 超过轨迹 XY 弧长时(补长被边界钳制/起步阶段),采样起点钳到路径起点,
+        身体铺满全部轨迹,保证与头部衔接不脱节。
+
+        [v5.2 修复 · 拖拽身体断层]
+        原实现对「越界量」用**绝对容差**钳制: t>1 且 t<1.5 → 钳到段端点 q。
+        这个容差是按安静档步距(QUIET_STEP=1.6px)标定的 —— 注释原文即
+        「微小幅差(浮点/重算噪声)钳到段端」。但拎起时 _drag_head_to 每帧只落
+        一个路径点, 段长 = DRAG_MAX_STEP = 30px; 于是 d 一进入某段, t 立刻>1,
+        被钳到段端点 → 采样点实际被"吸附回原始折点", 相邻间距退化为段长本身。
+        实测(78 节长蛇, 光标 400px/帧):
+            正常游动  相邻绘制点距 max 11.53px  (无断裂)
+            拖拽      相邻绘制点距 max 30.00~35.26px  (超过身直径 2*BODY_R=20px → 断层)
+        修复: 改为「先走到真正包含 d 的那一段, 再插值」—— 与段长无关,
+        任意段长下采样点都严格按弧长间隔 step 分布。
+        '''
         L = rp[-1][2]
         lo = max(rp[0][2], L - body_len)
         hi = L - d0
@@ -272,7 +286,8 @@ class RenderMixin:
             i += 1
         d = lo
         guard = 0
-        while d <= hi and i < m - 1 and guard < 5000:
+        guard_max = m + int(max(0.0, hi - lo) / max(1e-6, step)) + 16
+        while d <= hi and i < m - 1 and guard < guard_max:
             guard += 1
             p = rp[i]
             q = rp[i + 1]
@@ -280,21 +295,13 @@ class RenderMixin:
             if span <= 1e-09:
                 i += 1
                 continue
+            if d < p[2]:
+                d = p[2]          # 只可能由浮点噪声触发(前进方向单调)
+            if d > q[2]:
+                # d 已越过本段 → 前进到真正包含 d 的段,本段不落点
+                i += 1
+                continue
             t = (d - p[2]) / span
-            # v5.1.1:微小幅差(浮点/重算噪声)钳到段端,而不是跳过——
-            # 否则补长堆积点的亚像素抖动会让整条身体采样为空
-            if t < 0:
-                if t > -0.5:
-                    t = 0.0
-                else:
-                    i += 1
-                    continue
-            if t > 1:
-                if t < 1.5:
-                    t = 1.0
-                else:
-                    i += 1
-                    continue
             out.append((p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t))
             d += step
         return out

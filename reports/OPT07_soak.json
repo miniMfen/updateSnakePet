@@ -1,0 +1,19 @@
+{
+  "seconds": 180,
+  "headless": false,
+  "fps_avg": 33.56,
+  "fps_min": 12.95,
+  "frame_ms_avg": 22.981,
+  "frame_ms_max": 77.231,
+  "mem_start_mb": 41.0,
+  "mem_end_mb": 63.7,
+  "mem_delta_mb": 22.7,
+  "exceptions": [],
+  "foods_eaten": 14,
+  "coils": 0,
+  "drags": 24,
+  "pets": 9,
+  "path_max": 5801,
+  "fx_max": 13,
+  "log_path": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\_tool_home\\snake_pet.log"
+}
