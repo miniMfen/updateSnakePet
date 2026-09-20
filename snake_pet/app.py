@@ -494,13 +494,14 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
             self._step_impl()
         finally:
             # v5.1.2 自适应画质:实测帧耗时驱动像素预算升降,平衡帧率与细腻度
+            # v5.3:阈值跟随 TICK_MS(慢于 1.5×帧间隔降档,快于 0.9×帧间隔升档)
             self._frame_times.append(time.perf_counter() - t0)
             if len(self._frame_times) >= 30:
                 avg = sum(self._frame_times) / len(self._frame_times)
                 self._frame_times = []
-                if avg > 0.030:
+                if avg > TICK_MS * 1.5 / 1000:
                     self._ss_budget = max(SS_BUDGET_MIN, self._ss_budget * 0.88)
-                elif avg < 0.020:
+                elif avg < TICK_MS * 0.9 / 1000:
                     self._ss_budget = min(SS_BUDGET_MAX, self._ss_budget * 1.10)
 
     def _step_impl(self):
@@ -754,7 +755,7 @@ def selftest():
     assert constants.SEG == 20 and constants.HEAD_R == 17 and constants.BODY_R == 10
     assert constants.EAT_RADIUS == 15 and constants.GROW_PER_FOOD == 20
     assert constants.MAX_FOODS == 30 and constants.BODY_MAX == 2000
-    assert constants.QUIET_STEP == 1.6 and constants.ACTIVE_STEP == 9.5
+    assert constants.QUIET_STEP == 1.16 and constants.ACTIVE_STEP == 6.91
     assert constants.SATIETY_DECAY_PER_SEC == 0.1
     assert snake_pet.__version__
 
