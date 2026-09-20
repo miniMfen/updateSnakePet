@@ -88,6 +88,8 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
         # v5.2 睡觉三阶段状态机(需求1):None → 'coiling'(入睡前盘旋) → 'dozing'(打呼噜) → 冷却
         self._sleep_phase = None
         self._sleep_cooldown_until = 0.0
+        self._frame_no = 0            # v5.2 帧序号(拖拽每帧限速用)
+        self._drag_frame = -1         # 上一次推动头部的帧号
         self._coil_started = False
         self._coil_attempts = 0
         self._coil_retry_at = 0.0
@@ -253,15 +255,18 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
         target = stage_coeff(stage_of(self._ach.counters.get('total_eaten', 0)))
         self._stage_render += (target - self._stage_render) / 15.0
         # 消化:satiety<40 时体长回落至阶段基线,伴淡绿消化粒子
-        baseline = stage_baseline(stage_of(self._ach.counters.get('total_eaten', 0)))
-        new_len = digest_step(self.snake.body_len, self.satiety, TICK_MS / 1000.0, baseline)
-        if new_len < self.snake.body_len - 1e-6:
-            self.snake.body_len = new_len
-            if now - self._digest_fx_at >= 3.0:
-                self._digest_fx_at = now
-                (tx, ty) = self.snake.pos(self.snake.body_len * 0.5)
-                self._spawn_fx('bfx', tx, ty, size=random.uniform(2.5, 4.5), max=32)
-                logging.info('消化中: body_len=%.0f 基线=%.0f', self.snake.body_len, baseline)
+        # v5.2:受配置 no_digest 控制(菜单「不再自然变短」)。关闭时整块跳过 ——
+        #      不给 digest_step 加参数是为了不动它的既有签名(有单测覆盖)。
+        if not self.cfg.get('no_digest'):
+            baseline = stage_baseline(stage_of(self._ach.counters.get('total_eaten', 0)))
+            new_len = digest_step(self.snake.body_len, self.satiety, TICK_MS / 1000.0, baseline)
+            if new_len < self.snake.body_len - 1e-6:
+                self.snake.body_len = new_len
+                if now - self._digest_fx_at >= 3.0:
+                    self._digest_fx_at = now
+                    (tx, ty) = self.snake.pos(self.snake.body_len * 0.5)
+                    self._spawn_fx('bfx', tx, ty, size=random.uniform(2.5, 4.5), max=32)
+                    logging.info('消化中: body_len=%.0f 基线=%.0f', self.snake.body_len, baseline)
         # 胖瘦滚动窗口
         self._eat_times = [t for t in self._eat_times if now - t <= 600.0]
         self.body_scale = fatness_of(self._eat_times, now)
@@ -340,7 +345,20 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
                 self._squash = 6
 
     def _drag_head_to(self, x, y):
-        '''拎起跟随:头移向光标(clamp 进 bounds,单帧限速防拉裂),身体沿路径跟随'''
+        '''拎起跟随:头移向光标(clamp 进 bounds,单帧限速防拉裂),身体沿路径跟随。
+
+        v5.2 修复(拖拽身体断层):DRAG_MAX_STEP 的语义是「**每帧**头部位移上限」,
+        但本函数原先对每个 'drag' 事件都被调用一次,而高回报率鼠标一帧可投递数十个
+        MOVE 事件 → 一帧内连续调用数十次,限速形同虚设。实测(83 节长蛇,光标 400px/帧):
+            1 个 MOVE/帧 → 头部单帧位移 30.00px(正常)
+           20 个 MOVE/帧 → 头部单帧位移 423.79px(限速失效)
+        一帧跳 400+px 会把身体拉成一条横跨数百像素的直线,肉眼即「身体断层」。
+        修复:用帧号去重,保证一帧只推进一次。
+        注意本函数内部一律取 self._interact.cursor(最新光标),不依赖入参,
+        因此「只执行第一次调用」不会丢精度 —— 那一刻 cursor 已被本帧全部 MOVE 更新过。'''
+        if self._drag_frame == self._frame_no:
+            return
+        self._drag_frame = self._frame_no
         (cx, cy) = self._interact.cursor
         (lx, ly) = (cx - self.vx, cy - self.vy)
         (tx, ty) = self.snake._clamp(lx, ly)
@@ -486,6 +504,7 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
                     self._ss_budget = min(SS_BUDGET_MAX, self._ss_budget * 1.10)
 
     def _step_impl(self):
+        self._frame_no += 1
         now = time.monotonic()
         if self._is_dozing():
             self.satiety = 0.0
