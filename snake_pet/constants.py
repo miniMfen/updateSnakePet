@@ -225,6 +225,8 @@ ACHIEVEMENTS = (
 DEFAULT_CFG = {
     'no_eat': False,
     'no_spawn': True,
+    # v5.2 新增:关闭后饿着也不会缩回阶段基线(菜单「不再自然变短」)。默认 False = 保持原行为
+    'no_digest': False,
     'state': 'auto',
     'autostart': True,
     'autosave': True,     # v5.1 记住小蛇(自动存档),菜单可关

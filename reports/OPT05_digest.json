@@ -1,0 +1,49 @@
+{
+  "tag": "OPT05",
+  "gate": "digest_toggle",
+  "checked_at": "2026-09-20T14:59:41+0800",
+  "frames": 2000,
+  "start_body_len": 400.0,
+  "satiety": 10.0,
+  "expected_max_drop_px": 88.0,
+  "no_digest_false_body_len": 312.0,
+  "no_digest_false_drop": 88.0,
+  "no_digest_true_body_len": 400.0,
+  "no_digest_true_drop": 0.0,
+  "config_roundtrip": true,
+  "missing_key_defaults": true,
+  "default_value": false,
+  "checks": [
+    {
+      "id": "T1",
+      "desc": "no_digest=False 时体长按消化速率回落",
+      "pass": true,
+      "detail": "Δ=88.00 px (理论 88.00)"
+    },
+    {
+      "id": "T2",
+      "desc": "no_digest=True 时体长完全不回落",
+      "pass": true,
+      "detail": "Δ=0.00 px"
+    },
+    {
+      "id": "T3",
+      "desc": "开关写入配置后可读回",
+      "pass": true,
+      "detail": "readback=True"
+    },
+    {
+      "id": "T4",
+      "desc": "老配置缺该字段时自动取默认值(向后兼容)",
+      "pass": true,
+      "detail": "default=True"
+    },
+    {
+      "id": "T5",
+      "desc": "默认值为 False(不改变既有行为)",
+      "pass": true,
+      "detail": "no_digest=False"
+    }
+  ],
+  "overall": "PASS"
+}

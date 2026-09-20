@@ -1,0 +1,1378 @@
+{
+  "tag": "OPT04_PRE",
+  "gate": "drag_gap",
+  "checked_at": "2026-09-20T14:56:52+0800",
+  "project": "D:/aiWorkCode/professionalWork/updateSnakePet",
+  "SEG": 20,
+  "BODY_MAX": 2000,
+  "DRAG_MAX_STEP": 30.0,
+  "gap_tol": 2.0,
+  "expect": "所有模式的最大身体分段间距 <= SEG + 2.0，且头部单帧位移 <= DRAG_MAX_STEP",
+  "mode_control": {
+    "moves_per_frame": 0,
+    "state_after_press": null,
+    "state_final": "idle",
+    "max_gap": 24.0,
+    "gap_count_at_worst": 1,
+    "worst_frame": 22,
+    "head_step_max": 1.6,
+    "frames_with_gap": 40
+  },
+  "trace_control": [
+    {
+      "frame": 0,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 305
+    },
+    {
+      "frame": 1,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 306
+    },
+    {
+      "frame": 2,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 307
+    },
+    {
+      "frame": 3,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 308
+    },
+    {
+      "frame": 4,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 309
+    },
+    {
+      "frame": 5,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 310
+    },
+    {
+      "frame": 6,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 311
+    },
+    {
+      "frame": 7,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 312
+    },
+    {
+      "frame": 8,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 313
+    },
+    {
+      "frame": 9,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 314
+    },
+    {
+      "frame": 10,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 315
+    },
+    {
+      "frame": 11,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 316
+    },
+    {
+      "frame": 12,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 23.99,
+      "gap_count": 1,
+      "path_len": 317
+    },
+    {
+      "frame": 13,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 23.99,
+      "gap_count": 1,
+      "path_len": 318
+    },
+    {
+      "frame": 14,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 23.99,
+      "gap_count": 1,
+      "path_len": 319
+    },
+    {
+      "frame": 15,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 23.99,
+      "gap_count": 1,
+      "path_len": 320
+    },
+    {
+      "frame": 16,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 23.99,
+      "gap_count": 1,
+      "path_len": 321
+    },
+    {
+      "frame": 17,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 23.99,
+      "gap_count": 1,
+      "path_len": 322
+    },
+    {
+      "frame": 18,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 323
+    },
+    {
+      "frame": 19,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 324
+    },
+    {
+      "frame": 20,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 325
+    },
+    {
+      "frame": 21,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 326
+    },
+    {
+      "frame": 22,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 327
+    },
+    {
+      "frame": 23,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 328
+    },
+    {
+      "frame": 24,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 329
+    },
+    {
+      "frame": 25,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 26,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 331
+    },
+    {
+      "frame": 27,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 332
+    },
+    {
+      "frame": 28,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 333
+    },
+    {
+      "frame": 29,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 334
+    },
+    {
+      "frame": 30,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 335
+    },
+    {
+      "frame": 31,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 336
+    },
+    {
+      "frame": 32,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 337
+    },
+    {
+      "frame": 33,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 23.99,
+      "gap_count": 1,
+      "path_len": 338
+    },
+    {
+      "frame": 34,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 23.99,
+      "gap_count": 1,
+      "path_len": 339
+    },
+    {
+      "frame": 35,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 23.99,
+      "gap_count": 1,
+      "path_len": 340
+    },
+    {
+      "frame": 36,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 23.99,
+      "gap_count": 1,
+      "path_len": 341
+    },
+    {
+      "frame": 37,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 23.99,
+      "gap_count": 1,
+      "path_len": 342
+    },
+    {
+      "frame": 38,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 23.99,
+      "gap_count": 1,
+      "path_len": 343
+    },
+    {
+      "frame": 39,
+      "state": "idle",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 344
+    }
+  ],
+  "mode_slow": {
+    "moves_per_frame": 1,
+    "state_after_press": "press_head",
+    "state_final": "drag",
+    "max_gap": 24.0,
+    "gap_count_at_worst": 1,
+    "worst_frame": 5,
+    "head_step_max": 30.0,
+    "frames_with_gap": 39
+  },
+  "trace_slow": [
+    {
+      "frame": 0,
+      "state": "drag",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 305
+    },
+    {
+      "frame": 1,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 306
+    },
+    {
+      "frame": 2,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 307
+    },
+    {
+      "frame": 3,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 308
+    },
+    {
+      "frame": 4,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 309
+    },
+    {
+      "frame": 5,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 310
+    },
+    {
+      "frame": 6,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 311
+    },
+    {
+      "frame": 7,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 312
+    },
+    {
+      "frame": 8,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 313
+    },
+    {
+      "frame": 9,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 314
+    },
+    {
+      "frame": 10,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 315
+    },
+    {
+      "frame": 11,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 316
+    },
+    {
+      "frame": 12,
+      "state": "drag",
+      "head_step": 29.7,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 317
+    },
+    {
+      "frame": 13,
+      "state": "drag",
+      "head_step": 27.55,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 318
+    },
+    {
+      "frame": 14,
+      "state": "drag",
+      "head_step": 27.55,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 319
+    },
+    {
+      "frame": 15,
+      "state": "drag",
+      "head_step": 27.55,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 320
+    },
+    {
+      "frame": 16,
+      "state": "drag",
+      "head_step": 27.55,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 321
+    },
+    {
+      "frame": 17,
+      "state": "drag",
+      "head_step": 27.55,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 322
+    },
+    {
+      "frame": 18,
+      "state": "drag",
+      "head_step": 14.83,
+      "max_gap": 23.7,
+      "gap_count": 1,
+      "path_len": 323
+    },
+    {
+      "frame": 19,
+      "state": "drag",
+      "head_step": 9.1,
+      "max_gap": 21.7,
+      "gap_count": 0,
+      "path_len": 324
+    },
+    {
+      "frame": 20,
+      "state": "drag",
+      "head_step": 9.1,
+      "max_gap": 22.23,
+      "gap_count": 1,
+      "path_len": 325
+    },
+    {
+      "frame": 21,
+      "state": "drag",
+      "head_step": 9.1,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 326
+    },
+    {
+      "frame": 22,
+      "state": "drag",
+      "head_step": 9.1,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 327
+    },
+    {
+      "frame": 23,
+      "state": "drag",
+      "head_step": 9.1,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 328
+    },
+    {
+      "frame": 24,
+      "state": "drag",
+      "head_step": 9.1,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 329
+    },
+    {
+      "frame": 25,
+      "state": "drag",
+      "head_step": 9.1,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 26,
+      "state": "drag",
+      "head_step": 9.1,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 331
+    },
+    {
+      "frame": 27,
+      "state": "drag",
+      "head_step": 9.1,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 332
+    },
+    {
+      "frame": 28,
+      "state": "drag",
+      "head_step": 9.1,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 333
+    },
+    {
+      "frame": 29,
+      "state": "drag",
+      "head_step": 9.1,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 334
+    },
+    {
+      "frame": 30,
+      "state": "drag",
+      "head_step": 9.1,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 335
+    },
+    {
+      "frame": 31,
+      "state": "drag",
+      "head_step": 9.1,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 336
+    },
+    {
+      "frame": 32,
+      "state": "drag",
+      "head_step": 9.1,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 337
+    },
+    {
+      "frame": 33,
+      "state": "drag",
+      "head_step": 9.1,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 338
+    },
+    {
+      "frame": 34,
+      "state": "drag",
+      "head_step": 9.1,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 339
+    },
+    {
+      "frame": 35,
+      "state": "drag",
+      "head_step": 9.1,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 340
+    },
+    {
+      "frame": 36,
+      "state": "drag",
+      "head_step": 9.1,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 341
+    },
+    {
+      "frame": 37,
+      "state": "drag",
+      "head_step": 9.1,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 342
+    },
+    {
+      "frame": 38,
+      "state": "drag",
+      "head_step": 9.1,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 343
+    },
+    {
+      "frame": 39,
+      "state": "drag",
+      "head_step": 9.1,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 344
+    }
+  ],
+  "mode_fast1": {
+    "moves_per_frame": 1,
+    "state_after_press": "press_head",
+    "state_final": "drag",
+    "max_gap": 24.0,
+    "gap_count_at_worst": 1,
+    "worst_frame": 19,
+    "head_step_max": 30.0,
+    "frames_with_gap": 40
+  },
+  "trace_fast1": [
+    {
+      "frame": 0,
+      "state": "drag",
+      "head_step": 1.6,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 305
+    },
+    {
+      "frame": 1,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 306
+    },
+    {
+      "frame": 2,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 307
+    },
+    {
+      "frame": 3,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 308
+    },
+    {
+      "frame": 4,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 309
+    },
+    {
+      "frame": 5,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 310
+    },
+    {
+      "frame": 6,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 311
+    },
+    {
+      "frame": 7,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 312
+    },
+    {
+      "frame": 8,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 313
+    },
+    {
+      "frame": 9,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 314
+    },
+    {
+      "frame": 10,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 315
+    },
+    {
+      "frame": 11,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 316
+    },
+    {
+      "frame": 12,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 317
+    },
+    {
+      "frame": 13,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 318
+    },
+    {
+      "frame": 14,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 319
+    },
+    {
+      "frame": 15,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 320
+    },
+    {
+      "frame": 16,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 321
+    },
+    {
+      "frame": 17,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 322
+    },
+    {
+      "frame": 18,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 323
+    },
+    {
+      "frame": 19,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 324
+    },
+    {
+      "frame": 20,
+      "state": "drag",
+      "head_step": 30.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 325
+    },
+    {
+      "frame": 21,
+      "state": "drag",
+      "head_step": 23.21,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 326
+    },
+    {
+      "frame": 22,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 326
+    },
+    {
+      "frame": 23,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 326
+    },
+    {
+      "frame": 24,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 326
+    },
+    {
+      "frame": 25,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 326
+    },
+    {
+      "frame": 26,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 326
+    },
+    {
+      "frame": 27,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 326
+    },
+    {
+      "frame": 28,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 326
+    },
+    {
+      "frame": 29,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 326
+    },
+    {
+      "frame": 30,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 326
+    },
+    {
+      "frame": 31,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 326
+    },
+    {
+      "frame": 32,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 326
+    },
+    {
+      "frame": 33,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 326
+    },
+    {
+      "frame": 34,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 326
+    },
+    {
+      "frame": 35,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 326
+    },
+    {
+      "frame": 36,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 326
+    },
+    {
+      "frame": 37,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 326
+    },
+    {
+      "frame": 38,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 326
+    },
+    {
+      "frame": 39,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 326
+    }
+  ],
+  "mode_fast20": {
+    "moves_per_frame": 20,
+    "state_after_press": "press_head",
+    "state_final": "drag",
+    "max_gap": 24.0,
+    "gap_count_at_worst": 1,
+    "worst_frame": 2,
+    "head_step_max": 423.79,
+    "frames_with_gap": 40
+  },
+  "trace_fast20": [
+    {
+      "frame": 0,
+      "state": "drag",
+      "head_step": 423.79,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 320
+    },
+    {
+      "frame": 1,
+      "state": "drag",
+      "head_step": 161.1,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 326
+    },
+    {
+      "frame": 2,
+      "state": "drag",
+      "head_step": 114.86,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 3,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 4,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 5,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 6,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 7,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 8,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 9,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 10,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 11,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 12,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 13,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 14,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 15,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 16,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 17,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 18,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 19,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 20,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 21,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 22,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 23,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 24,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 25,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 26,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 27,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 28,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 29,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 30,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 31,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 32,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 33,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 34,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 35,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 36,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 37,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 38,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    },
+    {
+      "frame": 39,
+      "state": "drag",
+      "head_step": 0.0,
+      "max_gap": 24.0,
+      "gap_count": 1,
+      "path_len": 330
+    }
+  ],
+  "checks": [
+    {
+      "id": "D1",
+      "desc": "正常游动(对照)无断层",
+      "pass": false,
+      "detail": "max_gap=24.00"
+    },
+    {
+      "id": "D2",
+      "desc": "慢速拖拽无断层",
+      "pass": false,
+      "detail": "max_gap=24.00"
+    },
+    {
+      "id": "D3",
+      "desc": "快速甩动(1 事件/帧)无断层",
+      "pass": false,
+      "detail": "max_gap=24.00"
+    },
+    {
+      "id": "D4",
+      "desc": "快速甩动(20 事件/帧)无断层",
+      "pass": false,
+      "detail": "max_gap=24.00"
+    },
+    {
+      "id": "D5",
+      "desc": "头部单帧位移不超过 DRAG_MAX_STEP(1 事件/帧)",
+      "pass": true,
+      "detail": "30.00"
+    },
+    {
+      "id": "D6",
+      "desc": "头部单帧位移不超过 DRAG_MAX_STEP(20 事件/帧)",
+      "pass": false,
+      "detail": "423.79"
+    }
+  ],
+  "overall": "FAIL"
+}

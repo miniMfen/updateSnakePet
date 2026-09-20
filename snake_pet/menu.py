@@ -128,6 +128,7 @@ class MenuMixin:
             return cb
 
         for key, label in (('no_eat', '不再吃食物'), ('no_spawn', '左键点击不再生成食物'),
+                           ('no_digest', '不再自然变短'),
                            ('autosave', '记住小蛇(下次开机还原)'),
                            ('autostart', '开机自启动')):
             self._menu_rows.append({
