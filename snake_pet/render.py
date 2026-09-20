@@ -42,15 +42,37 @@ class RenderMixin:
             + [(fx['x'] + fx.get('vx', 0.0) * fx.get('max', 30),
                 fx['y'] + fx.get('vy', 0.0) * fx.get('max', 30)) for fx in self.fx]
         self._current_hat_id = resolve_hat(self.cfg.get('hat', 'auto'), self._is_night())
+        # 头部倾角(与 _draw_head 一致):帽子会跟着倾,bbox 必须用同一个角
+        tilt_deg = 0
+        if self.tilt > 0:
+            tilt_deg = int(14 * math.sin(math.pi * (12 - self.tilt) / 12))
         if self._current_hat_id is not None:
             (hx, hy) = (segs[0][0], segs[0][1])
             cw = HEAD_R * 2.6
             pts.append((hx - cw / 2, hy - HEAD_R * 1.2 - cw))
             pts.append((hx + cw / 2, hy - HEAD_R * 0.5))
+            # [v5.3 修复 · 拖拽后帽子部分消失] 上面两点是"假定帽子在头顶"的硬编码近似,
+            # 而帽子是**随朝向公转**的:heading≈180~225° 时它挂到头**下方**,这两个点
+            # 全加在了上面 → 底部只剩身体的 PAD=30px,帽子被窗口裁掉。
+            # 这里补上旋转后贴图在**世界坐标**下的真实落点矩形。
+            hr = self._hat_world_rect(hx, hy, snake.heading_angle, tilt_deg)
+            if hr is not None:
+                (rx0, ry0, rx1, ry1) = hr
+                pts.append((rx0, ry0))
+                pts.append((rx1, ry0))
+                pts.append((rx0, ry1))
+                pts.append((rx1, ry1))
         tail_d = snake.path[-1][2] - snake.body_len - 4
         for p in snake.path:
             if p[2] >= tail_d:
                 pts.append((p[0], p[1]))
+        # [v5.3 修复 · 拖拽后尾巴部分消失] 上面用的是**原始轨迹**点,而实际绘制用的是
+        # **平滑后渲染轨迹**(_build_render_path + _smooth_path)的采样点 ——
+        # 补长堆积点/圆弧替换/滑窗平滑都会改变弧长参数,画出来的尾端可能落在原始点之外
+        # (实测拖拽后右侧溢出 5.8px)。补上真正要画的那份采样点。
+        body_pts = self._body_render_points()
+        for (bx, by) in body_pts:
+            pts.append((bx, by))
         if not pts:
             return None
         xs = [p[0] for p in pts]
@@ -79,7 +101,7 @@ class RenderMixin:
         tilt_deg = 0
         if self.tilt > 0:
             tilt_deg = int(14 * math.sin(math.pi * (12 - self.tilt) / 12))
-        self._draw_snake(d, snake, ss, wx, wy)
+        self._draw_snake(d, snake, ss, wx, wy, body_pts=body_pts)
         self._draw_head(img, d, *L(segs[0][0], segs[0][1]), ss, snake.heading(),
                         blinking, self._mood(), tilt_deg)
         for fx in self.fx:
@@ -377,12 +399,52 @@ class RenderMixin:
             res.append((out[i][0], out[i][1], acc))
         return res
 
-    def _draw_snake(self, d, snake, ss, wx, wy):
-        th = self._theme()
-        d0 = HEAD_R * 1.1   # v5.1.1:身体更深地探入头下,保证衔接不脱节
+    def _body_render_points(self):
+        '''_draw_snake 实际要画的身体采样点(世界坐标)。
+
+        [v5.3] 抽出来是为了让**包围盒与绘制共用同一份几何** ——
+        以前 bbox 用原始轨迹点/pos() 粗采样,而画面用平滑轨迹的采样点,
+        两套几何不一致,尾端会被窗口裁掉。
+        '''
+        snake = self.snake
+        d0 = HEAD_R * 1.1
         step = 5 if snake.body_len <= 1200 else 8
         rp = self._build_render_path(snake)
-        pts = self._sample_body(rp, d0, step, snake.body_len)
+        return self._sample_body(rp, d0, step, snake.body_len)
+
+    def _hat_world_rect(self, hx, hy, theta, tilt_deg=0):
+        '''旋转后帽子贴图在**世界坐标**下占的矩形 (x0,y0,x1,y1);无帽返回 None。
+
+        用 R_w = HEAD_R * stage 计算 —— 与 _draw_hat_layer 的 R = HEAD_R*ss*stage
+        成线性关系(ss 在渲染时整体放大),故此处得到的矩形换算到世界坐标与真画一致。
+        tilt_deg 与 _draw_head 的头部倾角保持一致。
+        '''
+        hat_id = self._current_hat_id
+        if hat_id is None:
+            return None
+        if tilt_deg:
+            a = math.radians(tilt_deg)
+            (c, s) = (math.cos(a), math.sin(a))
+            ux, uy = math.cos(theta), math.sin(theta)
+            theta = math.atan2(ux * s + uy * c, ux * c - uy * s)
+        R_w = HEAD_R * getattr(self, '_stage_render', 1.0)
+        got = self._hat_renderer.get(hat_id, R_w, theta)
+        if got is None:
+            return None
+        (spr, px_off, py_off, ax_frac, ay_frac) = got
+        (ax, ay) = hat_anchor_pos(hx, hy, theta, (ax_frac, ay_frac), R_w)
+        x0 = ax - px_off
+        y0 = ay - py_off
+        return (x0, y0, x0 + spr.width, y0 + spr.height)
+
+    def _draw_snake(self, d, snake, ss, wx, wy, body_pts=None):
+        th = self._theme()
+        d0 = HEAD_R * 1.1
+        step = 5 if snake.body_len <= 1200 else 8
+        if body_pts is None:
+            rp = self._build_render_path(snake)
+            body_pts = self._sample_body(rp, d0, step, snake.body_len)
+        pts = list(body_pts)
         pts.reverse()
         if len(pts) < 3:
             return None

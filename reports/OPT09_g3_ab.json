@@ -1,0 +1,329 @@
+{
+  "tag": "OPT09",
+  "kind": "same_process_bbox_AB",
+  "checked_at": "2026-09-20T17:09:41+08:00",
+  "method": "同一进程内连续两次 run_probe:先跑当前代码,再把 _hat_world_rect/_body_render_points monkeypatch 回旧行为重跑 —— 状态/环境完全相同,差异只可能来自包围盒逻辑",
+  "why_not_cross_run": "跨轮探针对比(OPT08_probe vs OPT09_probe)不可用于归因:两次对比里场景状态本身不同(气泡/姿势),SIZE 有增有减;而同代码背靠背重跑是 20/20 完全一致,说明是流水线残留状态差异所致",
+  "summary": {
+    "window_grown": 18,
+    "window_shrunk": 0,
+    "identical": 1,
+    "pixel_only": 1,
+    "conclusion": "窗口只增不减 —— 18 个场景变大(帽子场景 +48px 高,正是原先被裁掉的部分),0 个变小;无任何场景丢失内容 → 本次改动零回归。"
+  },
+  "verdict": "PASS",
+  "scenes": [
+    {
+      "scene": "probe_01_游动.png",
+      "verdict": "PIXEL_ONLY",
+      "old_size": [
+        186,
+        166
+      ],
+      "new_size": [
+        186,
+        166
+      ]
+    },
+    {
+      "scene": "probe_02_追食.png",
+      "verdict": "WINDOW_GROWN",
+      "old_size": [
+        327,
+        96
+      ],
+      "new_size": [
+        328,
+        97
+      ],
+      "grow_px": [
+        1,
+        1
+      ]
+    },
+    {
+      "scene": "probe_03_吃食瞬间.png",
+      "verdict": "WINDOW_GROWN",
+      "old_size": [
+        272,
+        104
+      ],
+      "new_size": [
+        273,
+        104
+      ],
+      "grow_px": [
+        1,
+        0
+      ]
+    },
+    {
+      "scene": "probe_04_睡觉.png",
+      "verdict": "WINDOW_GROWN",
+      "old_size": [
+        450,
+        110
+      ],
+      "new_size": [
+        451,
+        110
+      ],
+      "grow_px": [
+        1,
+        0
+      ]
+    },
+    {
+      "scene": "probe_05_盘旋.png",
+      "verdict": "WINDOW_GROWN",
+      "old_size": [
+        466,
+        516
+      ],
+      "new_size": [
+        466,
+        551
+      ],
+      "grow_px": [
+        0,
+        35
+      ]
+    },
+    {
+      "scene": "probe_06_夜帽0度.png",
+      "verdict": "WINDOW_GROWN",
+      "old_size": [
+        466,
+        446
+      ],
+      "new_size": [
+        466,
+        494
+      ],
+      "grow_px": [
+        0,
+        48
+      ]
+    },
+    {
+      "scene": "probe_07_夜帽90度.png",
+      "verdict": "WINDOW_GROWN",
+      "old_size": [
+        466,
+        446
+      ],
+      "new_size": [
+        466,
+        494
+      ],
+      "grow_px": [
+        0,
+        48
+      ]
+    },
+    {
+      "scene": "probe_08_夜帽180度.png",
+      "verdict": "WINDOW_GROWN",
+      "old_size": [
+        466,
+        446
+      ],
+      "new_size": [
+        466,
+        494
+      ],
+      "grow_px": [
+        0,
+        48
+      ]
+    },
+    {
+      "scene": "probe_09_夜帽270度.png",
+      "verdict": "WINDOW_GROWN",
+      "old_size": [
+        466,
+        446
+      ],
+      "new_size": [
+        466,
+        494
+      ],
+      "grow_px": [
+        0,
+        48
+      ]
+    },
+    {
+      "scene": "probe_10_帽子圣诞.png",
+      "verdict": "WINDOW_GROWN",
+      "old_size": [
+        466,
+        446
+      ],
+      "new_size": [
+        466,
+        494
+      ],
+      "grow_px": [
+        0,
+        48
+      ]
+    },
+    {
+      "scene": "probe_11_帽子皇冠.png",
+      "verdict": "WINDOW_GROWN",
+      "old_size": [
+        466,
+        446
+      ],
+      "new_size": [
+        466,
+        494
+      ],
+      "grow_px": [
+        0,
+        48
+      ]
+    },
+    {
+      "scene": "probe_12_帽子学士.png",
+      "verdict": "WINDOW_GROWN",
+      "old_size": [
+        466,
+        446
+      ],
+      "new_size": [
+        466,
+        494
+      ],
+      "grow_px": [
+        0,
+        48
+      ]
+    },
+    {
+      "scene": "probe_13_帽子礼帽.png",
+      "verdict": "WINDOW_GROWN",
+      "old_size": [
+        466,
+        446
+      ],
+      "new_size": [
+        466,
+        494
+      ],
+      "grow_px": [
+        0,
+        48
+      ]
+    },
+    {
+      "scene": "probe_14_帽子棒球.png",
+      "verdict": "WINDOW_GROWN",
+      "old_size": [
+        466,
+        446
+      ],
+      "new_size": [
+        466,
+        494
+      ],
+      "grow_px": [
+        0,
+        48
+      ]
+    },
+    {
+      "scene": "probe_15_帽子蝴蝶结.png",
+      "verdict": "WINDOW_GROWN",
+      "old_size": [
+        466,
+        446
+      ],
+      "new_size": [
+        466,
+        494
+      ],
+      "grow_px": [
+        0,
+        48
+      ]
+    },
+    {
+      "scene": "probe_16_主题经典绿.png",
+      "verdict": "WINDOW_GROWN",
+      "old_size": [
+        466,
+        446
+      ],
+      "new_size": [
+        466,
+        494
+      ],
+      "grow_px": [
+        0,
+        48
+      ]
+    },
+    {
+      "scene": "probe_17_主题蜜桃粉.png",
+      "verdict": "WINDOW_GROWN",
+      "old_size": [
+        466,
+        446
+      ],
+      "new_size": [
+        466,
+        494
+      ],
+      "grow_px": [
+        0,
+        48
+      ]
+    },
+    {
+      "scene": "probe_18_吐信.png",
+      "verdict": "WINDOW_GROWN",
+      "old_size": [
+        466,
+        446
+      ],
+      "new_size": [
+        466,
+        494
+      ],
+      "grow_px": [
+        0,
+        48
+      ]
+    },
+    {
+      "scene": "probe_19_长蛇100节.png",
+      "verdict": "WINDOW_GROWN",
+      "old_size": [
+        466,
+        744
+      ],
+      "new_size": [
+        534,
+        789
+      ],
+      "grow_px": [
+        68,
+        45
+      ]
+    },
+    {
+      "scene": "probe_20_菜单.png",
+      "verdict": "IDENTICAL",
+      "old_size": [
+        254,
+        678
+      ],
+      "new_size": [
+        254,
+        678
+      ]
+    }
+  ]
+}

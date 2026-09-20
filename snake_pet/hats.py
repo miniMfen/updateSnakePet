@@ -23,13 +23,13 @@ HATS_SUBDIR = 'hats'
 #  - crown 原 scale=0.82 / anchor_y=-0.88:它是 7 顶里最小的(渲染高度仅约其他帽的 60%),
 #    且佩戴点偏低显得"卡在脸上"。改为 scale=1.10 / anchor_y=-1.02 后尺寸相称、戴到头顶。
 DEFAULT_REGISTRY = {
-    'nightcap': {'name': '夜帽', 'anchor': [0.0, -0.74], 'scale': 1.25,
+    'nightcap': {'name': '夜帽', 'anchor': [0.0, -0.66], 'scale': 1.25,
                  'base_offset_deg': 0, 'builtin_fallback': 'nightcap',
                  'pivot': [0.58, 0.92]},
     'santa': {'name': '圣诞', 'anchor': [0.0, -0.74], 'scale': 1.1,
               'base_offset_deg': 0, 'builtin_fallback': 'santa',
               'pivot': [0.5, 0.94]},
-    'crown': {'name': '皇冠', 'anchor': [0.0, -1.02], 'scale': 1.10,
+    'crown': {'name': '皇冠', 'anchor': [0.0, -1.10], 'scale': 1.10,
               'base_offset_deg': 0, 'builtin_fallback': 'crown'},
     'graduation': {'name': '学士', 'anchor': [0.0, -0.74], 'scale': 1.2,
                    'base_offset_deg': 0, 'builtin_fallback': 'graduation',

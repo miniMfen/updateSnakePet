@@ -1,0 +1,583 @@
+{
+  "tag": "OPT09AB",
+  "checked_at": "2026-09-20T17:02:10+0800",
+  "note": "overflow>0 = 该侧被窗口裁掉;old=旧包围盒(monkeypatch复现),new=当前",
+  "cases": [
+    {
+      "hat": "santa",
+      "heading": 0,
+      "old": {
+        "left": -31.9,
+        "top": -38.2,
+        "right": -34.5,
+        "bottom": -17.5
+      },
+      "new": {
+        "left": -31.9,
+        "top": -38.2,
+        "right": -34.5,
+        "bottom": -17.5
+      },
+      "old_max": -17.5,
+      "new_max": -17.5
+    },
+    {
+      "hat": "santa",
+      "heading": 45,
+      "old": {
+        "left": -31.4,
+        "top": -30.5,
+        "right": 1.0,
+        "bottom": -12.5
+      },
+      "new": {
+        "left": -31.4,
+        "top": -30.5,
+        "right": -31.0,
+        "bottom": -19.5
+      },
+      "old_max": 1.0,
+      "new_max": -19.5
+    },
+    {
+      "hat": "santa",
+      "heading": 90,
+      "old": {
+        "left": -33.5,
+        "top": -31.9,
+        "right": 3.8,
+        "bottom": -12.5
+      },
+      "new": {
+        "left": -33.5,
+        "top": -31.9,
+        "right": -30.2,
+        "bottom": -30.5
+      },
+      "old_max": 3.8,
+      "new_max": -30.2
+    },
+    {
+      "hat": "santa",
+      "heading": 135,
+      "old": {
+        "left": -33.5,
+        "top": -30.4,
+        "right": -32.5,
+        "bottom": 22.0
+      },
+      "new": {
+        "left": -33.5,
+        "top": -30.4,
+        "right": -32.5,
+        "bottom": -32.0
+      },
+      "old_max": 22.0,
+      "new_max": -30.4
+    },
+    {
+      "hat": "santa",
+      "heading": 180,
+      "old": {
+        "left": -33.5,
+        "top": -75.5,
+        "right": -32.9,
+        "bottom": 19.8
+      },
+      "new": {
+        "left": -33.5,
+        "top": -75.5,
+        "right": -32.9,
+        "bottom": -31.2
+      },
+      "old_max": 19.8,
+      "new_max": -31.2
+    },
+    {
+      "hat": "santa",
+      "heading": 225,
+      "old": {
+        "left": 1.0,
+        "top": -75.5,
+        "right": -31.4,
+        "bottom": -32.5
+      },
+      "new": {
+        "left": -31.0,
+        "top": -75.5,
+        "right": -31.4,
+        "bottom": -32.5
+      },
+      "old_max": 1.0,
+      "new_max": -31.0
+    },
+    {
+      "hat": "santa",
+      "heading": 270,
+      "old": {
+        "left": 3.8,
+        "top": -75.5,
+        "right": -33.5,
+        "bottom": -32.9
+      },
+      "new": {
+        "left": -30.2,
+        "top": -75.5,
+        "right": -33.5,
+        "bottom": -32.9
+      },
+      "old_max": 3.8,
+      "new_max": -30.2
+    },
+    {
+      "hat": "santa",
+      "heading": 315,
+      "old": {
+        "left": -31.5,
+        "top": -41.0,
+        "right": -34.5,
+        "bottom": -32.4
+      },
+      "new": {
+        "left": -31.5,
+        "top": -41.0,
+        "right": -34.5,
+        "bottom": -32.4
+      },
+      "old_max": -31.5,
+      "new_max": -31.5
+    },
+    {
+      "hat": "crown",
+      "heading": 0,
+      "old": {
+        "left": -31.9,
+        "top": -64.7,
+        "right": -34.5,
+        "bottom": -17.5
+      },
+      "new": {
+        "left": -31.9,
+        "top": -64.7,
+        "right": -34.5,
+        "bottom": -17.5
+      },
+      "old_max": -17.5,
+      "new_max": -17.5
+    },
+    {
+      "hat": "crown",
+      "heading": 45,
+      "old": {
+        "left": -31.4,
+        "top": -30.5,
+        "right": -17.3,
+        "bottom": -12.5
+      },
+      "new": {
+        "left": -31.4,
+        "top": -30.5,
+        "right": -31.3,
+        "bottom": -26.5
+      },
+      "old_max": -12.5,
+      "new_max": -26.5
+    },
+    {
+      "hat": "crown",
+      "heading": 90,
+      "old": {
+        "left": -33.5,
+        "top": -31.9,
+        "right": -22.7,
+        "bottom": -12.5
+      },
+      "new": {
+        "left": -33.5,
+        "top": -31.9,
+        "right": -30.7,
+        "bottom": -31.5
+      },
+      "old_max": -12.5,
+      "new_max": -30.7
+    },
+    {
+      "hat": "crown",
+      "heading": 135,
+      "old": {
+        "left": -33.5,
+        "top": -30.4,
+        "right": -32.5,
+        "bottom": 3.2
+      },
+      "new": {
+        "left": -33.5,
+        "top": -30.4,
+        "right": -32.5,
+        "bottom": -32.8
+      },
+      "old_max": 3.2,
+      "new_max": -30.4
+    },
+    {
+      "hat": "crown",
+      "heading": 180,
+      "old": {
+        "left": -33.5,
+        "top": -75.5,
+        "right": -32.9,
+        "bottom": -6.7
+      },
+      "new": {
+        "left": -33.5,
+        "top": -75.5,
+        "right": -32.9,
+        "bottom": -30.7
+      },
+      "old_max": -6.7,
+      "new_max": -30.7
+    },
+    {
+      "hat": "crown",
+      "heading": 225,
+      "old": {
+        "left": -17.3,
+        "top": -75.5,
+        "right": -31.4,
+        "bottom": -32.5
+      },
+      "new": {
+        "left": -30.3,
+        "top": -75.5,
+        "right": -32.4,
+        "bottom": -32.5
+      },
+      "old_max": -17.3,
+      "new_max": -30.3
+    },
+    {
+      "hat": "crown",
+      "heading": 270,
+      "old": {
+        "left": -22.7,
+        "top": -75.5,
+        "right": -33.5,
+        "bottom": -32.9
+      },
+      "new": {
+        "left": -30.7,
+        "top": -75.5,
+        "right": -33.5,
+        "bottom": -32.9
+      },
+      "old_max": -22.7,
+      "new_max": -30.7
+    },
+    {
+      "hat": "crown",
+      "heading": 315,
+      "old": {
+        "left": -31.5,
+        "top": -59.8,
+        "right": -34.5,
+        "bottom": -32.4
+      },
+      "new": {
+        "left": -31.5,
+        "top": -59.8,
+        "right": -34.5,
+        "bottom": -32.4
+      },
+      "old_max": -31.5,
+      "new_max": -31.5
+    },
+    {
+      "hat": "nightcap",
+      "heading": 0,
+      "old": {
+        "left": -31.9,
+        "top": -53.0,
+        "right": -34.5,
+        "bottom": -17.5
+      },
+      "new": {
+        "left": -31.9,
+        "top": -53.0,
+        "right": -34.5,
+        "bottom": -17.5
+      },
+      "old_max": -17.5,
+      "new_max": -17.5
+    },
+    {
+      "hat": "nightcap",
+      "heading": 45,
+      "old": {
+        "left": -31.4,
+        "top": -30.5,
+        "right": -10.0,
+        "bottom": -12.5
+      },
+      "new": {
+        "left": -31.4,
+        "top": -30.5,
+        "right": -31.0,
+        "bottom": -19.5
+      },
+      "old_max": -10.0,
+      "new_max": -19.5
+    },
+    {
+      "hat": "nightcap",
+      "heading": 90,
+      "old": {
+        "left": -33.5,
+        "top": -31.9,
+        "right": -11.0,
+        "bottom": -12.5
+      },
+      "new": {
+        "left": -33.5,
+        "top": -31.9,
+        "right": -31.0,
+        "bottom": -29.5
+      },
+      "old_max": -11.0,
+      "new_max": -29.5
+    },
+    {
+      "hat": "nightcap",
+      "heading": 135,
+      "old": {
+        "left": -33.5,
+        "top": -30.4,
+        "right": -32.5,
+        "bottom": 11.0
+      },
+      "new": {
+        "left": -33.5,
+        "top": -30.4,
+        "right": -32.5,
+        "bottom": -32.0
+      },
+      "old_max": 11.0,
+      "new_max": -30.4
+    },
+    {
+      "hat": "nightcap",
+      "heading": 180,
+      "old": {
+        "left": -33.5,
+        "top": -75.5,
+        "right": -32.9,
+        "bottom": 5.0
+      },
+      "new": {
+        "left": -33.5,
+        "top": -75.5,
+        "right": -32.9,
+        "bottom": -31.0
+      },
+      "old_max": 5.0,
+      "new_max": -31.0
+    },
+    {
+      "hat": "nightcap",
+      "heading": 225,
+      "old": {
+        "left": -10.0,
+        "top": -75.5,
+        "right": -31.4,
+        "bottom": -32.5
+      },
+      "new": {
+        "left": -31.0,
+        "top": -75.5,
+        "right": -31.4,
+        "bottom": -32.5
+      },
+      "old_max": -10.0,
+      "new_max": -31.0
+    },
+    {
+      "hat": "nightcap",
+      "heading": 270,
+      "old": {
+        "left": -11.0,
+        "top": -75.5,
+        "right": -33.5,
+        "bottom": -32.9
+      },
+      "new": {
+        "left": -31.0,
+        "top": -75.5,
+        "right": -33.5,
+        "bottom": -32.9
+      },
+      "old_max": -11.0,
+      "new_max": -31.0
+    },
+    {
+      "hat": "nightcap",
+      "heading": 315,
+      "old": {
+        "left": -31.5,
+        "top": -52.0,
+        "right": -34.5,
+        "bottom": -32.4
+      },
+      "new": {
+        "left": -31.5,
+        "top": -52.0,
+        "right": -34.5,
+        "bottom": -32.4
+      },
+      "old_max": -31.5,
+      "new_max": -31.5
+    },
+    {
+      "hat": "tophat",
+      "heading": 0,
+      "old": {
+        "left": -31.9,
+        "top": -51.8,
+        "right": -34.5,
+        "bottom": -17.5
+      },
+      "new": {
+        "left": -31.9,
+        "top": -51.8,
+        "right": -34.5,
+        "bottom": -17.5
+      },
+      "old_max": -17.5,
+      "new_max": -17.5
+    },
+    {
+      "hat": "tophat",
+      "heading": 45,
+      "old": {
+        "left": -31.4,
+        "top": -30.5,
+        "right": -9.0,
+        "bottom": -12.5
+      },
+      "new": {
+        "left": -31.4,
+        "top": -30.5,
+        "right": -31.0,
+        "bottom": -20.5
+      },
+      "old_max": -9.0,
+      "new_max": -20.5
+    },
+    {
+      "hat": "tophat",
+      "heading": 90,
+      "old": {
+        "left": -33.5,
+        "top": -31.9,
+        "right": -9.8,
+        "bottom": -12.5
+      },
+      "new": {
+        "left": -33.5,
+        "top": -31.9,
+        "right": -30.8,
+        "bottom": -30.5
+      },
+      "old_max": -9.8,
+      "new_max": -30.5
+    },
+    {
+      "hat": "tophat",
+      "heading": 135,
+      "old": {
+        "left": -33.5,
+        "top": -30.4,
+        "right": -32.5,
+        "bottom": 12.5
+      },
+      "new": {
+        "left": -33.5,
+        "top": -30.4,
+        "right": -32.5,
+        "bottom": -32.5
+      },
+      "old_max": 12.5,
+      "new_max": -30.4
+    },
+    {
+      "hat": "tophat",
+      "heading": 180,
+      "old": {
+        "left": -33.5,
+        "top": -75.5,
+        "right": -32.9,
+        "bottom": 6.2
+      },
+      "new": {
+        "left": -33.5,
+        "top": -75.5,
+        "right": -32.9,
+        "bottom": -30.8
+      },
+      "old_max": 6.2,
+      "new_max": -30.8
+    },
+    {
+      "hat": "tophat",
+      "heading": 225,
+      "old": {
+        "left": -9.0,
+        "top": -75.5,
+        "right": -31.4,
+        "bottom": -32.5
+      },
+      "new": {
+        "left": -31.0,
+        "top": -75.5,
+        "right": -31.4,
+        "bottom": -32.5
+      },
+      "old_max": -9.0,
+      "new_max": -31.0
+    },
+    {
+      "hat": "tophat",
+      "heading": 270,
+      "old": {
+        "left": -9.8,
+        "top": -75.5,
+        "right": -33.5,
+        "bottom": -32.9
+      },
+      "new": {
+        "left": -30.8,
+        "top": -75.5,
+        "right": -33.5,
+        "bottom": -32.9
+      },
+      "old_max": -9.8,
+      "new_max": -30.8
+    },
+    {
+      "hat": "tophat",
+      "heading": 315,
+      "old": {
+        "left": -31.5,
+        "top": -50.5,
+        "right": -34.5,
+        "bottom": -32.4
+      },
+      "new": {
+        "left": -31.5,
+        "top": -50.5,
+        "right": -34.5,
+        "bottom": -32.4
+      },
+      "old_max": -31.5,
+      "new_max": -31.5
+    }
+  ]
+}
