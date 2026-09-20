@@ -69,11 +69,12 @@ def test_fatness_t11_3():
 def test_skin_unlock_t11_4():
     # 门槛边界:0/10/30/60/100
     assert skin_unlocked(0, 0)
-    assert not skin_unlocked(1, 9) and skin_unlocked(1, 10)
-    assert not skin_unlocked(2, 29) and skin_unlocked(2, 30)
-    assert not skin_unlocked(3, 59) and skin_unlocked(3, 60)
-    assert not skin_unlocked(4, 99) and skin_unlocked(4, 100)
-    assert skin_lock_hint(1) == '累计吃 10 颗解锁'
+    # v5.2 授权契约变更(CONTRACT-CHANGE-01):门槛由 (0,10,30,60,100) 降为 (0,3,8,15,25)
+    assert not skin_unlocked(1, 2) and skin_unlocked(1, 3)
+    assert not skin_unlocked(2, 7) and skin_unlocked(2, 8)
+    assert not skin_unlocked(3, 14) and skin_unlocked(3, 15)
+    assert not skin_unlocked(4, 24) and skin_unlocked(4, 25)
+    assert skin_lock_hint(1) == '累计吃 3 颗解锁'
     assert skin_lock_hint(0) == ''
 
 

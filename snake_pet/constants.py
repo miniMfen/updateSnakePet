@@ -64,10 +64,16 @@ C_BLUSH = (255, 183, 197)
 C_MOUTH = (60, 110, 71)
 
 # ---- P3 主题表(≥3 套;字段见 reports/P3_style_analysis.md §3) ----
+# ⚠ v5.2 刻意「名/色交叉」—— 用户 2026-09-20 指示:
+#   诉求是「经典改为默认皮肤、翡翠改为需解锁皮肤」,但用户明确要求
+#   「按下这两个按键后的颜色跟原来是一样的」。因此**只互换两者的 name,配色与顺序不动**:
+#     索引 0(默认,门槛 0) 显示「经典绿」 → 实际渲染 jade 调色板
+#     索引 1(需解锁,门槛 3) 显示「翡翠玉蛇」 → 实际渲染 v4 经典绿调色板
+#   若日后要让名与色严格对齐,把下面两处的 name 值换回来即可(仅两行)。
 # 主题1「翡翠玉蛇」:以微软 Fluent 3D 蛇(snake_fluent3d.png, MIT)量化取色为基准
 SNAKE_THEMES = (
     {
-        'id': 'jade', 'name': '翡翠玉蛇',
+        'id': 'jade', 'name': '经典绿',
         'body': ((96, 214, 150), (72, 196, 140), (58, 172, 122), (46, 148, 104)),
         'head': (104, 218, 156),
         'belly': (214, 244, 222),
@@ -81,7 +87,7 @@ SNAKE_THEMES = (
         'tongue': (255, 96, 128),
     },
     {
-        'id': 'classic', 'name': '经典绿',
+        'id': 'classic', 'name': '翡翠玉蛇',
         'body': C_BODY,
         'head': C_HEAD,
         'belly': C_BELLY,
@@ -199,7 +205,7 @@ BODY_START_SEG = 8          # v5.1 初始体长(节,v4 为 5 节,用户反馈加
 FATNESS_WINDOW_SEC = 600        # 胖瘦滚动窗口(10min)
 FATNESS_PER_EAT = 0.05          # 每颗进食圆润增量
 FATNESS_MAX = 0.25              # 圆润上限(系数 1.0~1.25)
-SKIN_UNLOCK_EATEN = (0, 10, 30, 60, 100)  # 各皮肤解锁门槛(累计进食)
+SKIN_UNLOCK_EATEN = (0, 3, 8, 15, 25)   # 各皮肤解锁门槛(累计进食);v5.2 由 (0,10,30,60,100) 降低
 PET_STATE_FILE = 'pet_state.json'
 SAVE_PERIOD_SEC = 60            # 周期存档间隔(s)
 

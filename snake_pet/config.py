@@ -4,7 +4,7 @@ import logging
 import os
 import sys
 
-from .constants import APP_NAME, DEFAULT_CFG
+from .constants import APP_NAME, DEFAULT_CFG, DEFAULT_THEME
 
 
 def base_dir():
@@ -50,7 +50,7 @@ def load_config(path=None):
                 if data.get('ver', 0) < 2:
                     data['no_spawn'] = True   # v1→v2 迁移语义保持(AC-F6-7)
                 data.setdefault('hat', 'auto')     # P4
-                data.setdefault('theme', 'jade')   # P6 皮肤选择
+                data.setdefault('theme', DEFAULT_THEME)   # P6 皮肤选择(v5.2 起单一真源)
                 data['ver'] = 5
         cfg.update(data)
         if cfg.get('hat') not in ('auto', 'none') and cfg.get('hat') not in DEFAULT_REGISTRY:
