@@ -15,13 +15,34 @@ from .platform_win import blit_image_to_window, create_layered_window, show_wind
 class MenuMixin:
     (MENU_PW, MENU_PAD, MENU_HEAD, MENU_ROWH) = (254, 12, 46, 38)
 
+    # 开关组 —— 唯一真源:高度公式与 _menu_layout 都从这里取。
+    # [v5.2 修复] 原先高度公式里硬编码「开关×4」,OPT05 加进第 5 个开关后没同步,
+    # 面板少算一行(38px),最后一行「退出」被画出画布 → 菜单里退出键消失。
+    TOGGLE_ITEMS = (('no_eat', '不再吃食物'),
+                    ('no_spawn', '左键点击不再生成食物'),
+                    ('no_digest', '不再自然变短'),
+                    ('autosave', '记住小蛇(下次开机还原)'),
+                    ('autostart', '开机自启动'))
+
+    # 开关组之外的固定行高合计:
+    # 状态1 + 帽子2 + 卖萌1 + 皮肤1 + 成就1 + 投喂1 + 盘旋1 + 长度1 + 动作2(清空食物/退出)
+    MENU_FIXED_ROWS = 1 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 2
+
     @property
     def MENU_PH(self):
-        # 行数含:开关×4 + 状态 + 帽子(折两行) + 卖萌 + 皮肤 + 成就 + 投喂 + 盘旋 + 长度 + 动作×2
-        nrows = 4 + 1 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 2
+        '''面板高度「预估」值:建窗时给个初值用。
+        真值以 _menu_layout() 实测的 self._menu_h 为准(见 _menu_ph)——
+        窗口真实尺寸由 UpdateLayeredWindow 按图像尺寸改写,所以这里算少了不会再裁切,
+        但仍会触发 _menu_layout() 里的告警,提示公式需要同步。'''
+        nrows = len(self.TOGGLE_ITEMS) + self.MENU_FIXED_ROWS
         if self._len_input is not None:
             nrows += 4   # 长度输入编辑器展开(显示/数字×2/操作)
         return self.MENU_PAD + self.MENU_HEAD + nrows * self.MENU_ROWH + self.MENU_PAD
+
+    @property
+    def _menu_ph(self):
+        '''渲染与命中判定使用的真实面板高度:优先取布局实测值,任何一行都不会被裁掉'''
+        return getattr(self, '_menu_h', 0) or self.MENU_PH
 
     def _len_chip_box(self, col, line, y):
         '''长度编辑器第 line 行第 col 列按键的命中矩形(5 列紧凑)'''
@@ -67,9 +88,10 @@ class MenuMixin:
         self.menu_rect = None
         self._menu_rows = []
         self._menu_hits = []
+        self._menu_h = 0
         self._menu_layout()
         w = self.MENU_PW
-        h = self.MENU_PH
+        h = self._menu_ph
         x = int(sx) + 6
         y = int(sy) + 6
         if x + w > self.vw:
@@ -101,6 +123,10 @@ class MenuMixin:
         if not self.menu_open or not self.menu_rect:
             return
         self._menu_layout()
+        if self.menu_rect:
+            # 面板高度可能随长度输入编辑器展开/收起而变化,同步命中判定用的矩形
+            (x0, y0, _x1, _y1) = self.menu_rect
+            self.menu_rect = (x0, y0, x0 + self.MENU_PW, y0 + self._menu_ph)
         if not self.headless:
             img = self._render_menu_image()
             blit_image_to_window(self._menu_hwnd, img, self.menu_rect[0], self.menu_rect[1])
@@ -127,10 +153,7 @@ class MenuMixin:
                 self._reopen_menu()
             return cb
 
-        for key, label in (('no_eat', '不再吃食物'), ('no_spawn', '左键点击不再生成食物'),
-                           ('no_digest', '不再自然变短'),
-                           ('autosave', '记住小蛇(下次开机还原)'),
-                           ('autostart', '开机自启动')):
+        for key, label in self.TOGGLE_ITEMS:
             self._menu_rows.append({
                 'kind': 'toggle',
                 'label': label,
@@ -250,6 +273,12 @@ class MenuMixin:
             self._menu_hits.append((0, y, pw, y + rowh, cb))
             y += rowh
         self._menu_hits.append((pw - 46, 6, pw - 2, 42, self._close_menu))
+        # [v5.2 修复] 布局实测高度:渲染与命中判定以它为准,保证最后一行不会被裁掉。
+        # 与 MENU_PH 预估不一致说明高度公式脱钩(漏同步开关数/行数),告警以便及时发现。
+        self._menu_h = y + self.MENU_PAD
+        if self._menu_h != self.MENU_PH:
+            logging.warning('菜单高度预估与实际不符:预估 %d / 实测 %d —— '
+                            '请同步 MENU_FIXED_ROWS 与 TOGGLE_ITEMS', self.MENU_PH, self._menu_h)
 
     def _set_state(self, v):
         self.cfg['state'] = v
@@ -379,7 +408,7 @@ class MenuMixin:
 
     def _render_menu_image(self):
         '''用 PIL 绘制菜单面板(全透明通道,圆角面板),返回图像'''
-        ph = self.MENU_PH
+        ph = self._menu_ph
         pw = self.MENU_PW
         pad = self.MENU_PAD
         img = Image.new('RGBA', (pw, ph), (0, 0, 0, 0))
