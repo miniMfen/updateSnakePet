@@ -1,0 +1,146 @@
+{
+  "PART1_windowfrompoint": {
+    "on_head": {
+      "point": [
+        2370,
+        590
+      ],
+      "hwnd": "0x101e8",
+      "is_own_window": false,
+      "class": "SysListView32",
+      "is_desktop_layer": true,
+      "visible": true
+    },
+    "on_body": {
+      "point": [
+        2286,
+        594
+      ],
+      "hwnd": "0x80dc2",
+      "is_own_window": false,
+      "class": "Chrome_RenderWidgetHostHWND",
+      "is_desktop_layer": false,
+      "visible": true
+    },
+    "on_desktop_blank": {
+      "point": [
+        40,
+        40
+      ],
+      "hwnd": "0x101e8",
+      "is_own_window": false,
+      "class": "SysListView32",
+      "is_desktop_layer": true,
+      "visible": true
+    }
+  },
+  "PART2_repro": {
+    "baseline_desktop_on_snake": {
+      "menu_opened": true
+    },
+    "covered_by_window": {
+      "menu_opened": true,
+      "top_window": {
+        "point": [
+          2370,
+          590
+        ],
+        "hwnd": "0x101e8",
+        "is_own_window": false,
+        "class": "SysListView32",
+        "is_desktop_layer": true,
+        "visible": true
+      }
+    },
+    "covered_by_fullscreen": {
+      "menu_opened": true,
+      "top_window": {
+        "point": [
+          2370,
+          590
+        ],
+        "hwnd": "0x101e8",
+        "is_own_window": false,
+        "class": "SysListView32",
+        "is_desktop_layer": true,
+        "visible": true
+      }
+    },
+    "verdict": "REPRODUCED"
+  },
+  "PART3_fixed": {
+    "skipped": true
+  },
+  "PART0_topmost_probe": {
+    "head": {
+      "point": [
+        74,
+        1353
+      ],
+      "hwnd": "0x101e8",
+      "is_own_window": false,
+      "class": "SysListView32",
+      "is_desktop_layer": true,
+      "visible": true
+    },
+    "body": {
+      "point": [
+        115,
+        1281
+      ],
+      "hwnd": "0x101e8",
+      "is_own_window": false,
+      "class": "SysListView32",
+      "is_desktop_layer": true,
+      "visible": true
+    },
+    "transparent": {
+      "point": [
+        44,
+        1186
+      ],
+      "hwnd": "0x101e8",
+      "is_own_window": false,
+      "class": "SysListView32",
+      "is_desktop_layer": true,
+      "visible": true
+    },
+    "window_rect": [
+      44,
+      1186,
+      187,
+      1385
+    ],
+    "alpha_coverage": 0.1579
+  },
+  "env": {
+    "virtual_screen": [
+      0,
+      0,
+      2560,
+      1600
+    ],
+    "head_world": [
+      2370.7,
+      590.6
+    ],
+    "hwnd": "0xa0458",
+    "dib": [
+      222,
+      69
+    ],
+    "seg_count": 8,
+    "bounds": [
+      26,
+      26,
+      2534,
+      1502
+    ],
+    "own_window_rect": [
+      2180,
+      560,
+      2402,
+      629
+    ]
+  }
+}

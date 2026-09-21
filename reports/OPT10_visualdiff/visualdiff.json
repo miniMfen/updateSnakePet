@@ -1,0 +1,701 @@
+{
+  "tool": "compare_probe.py",
+  "checked_at": "2026-09-21T22:24:57+08:00",
+  "before_dir": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_probe",
+  "after_dir": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_probe",
+  "tol": 8,
+  "scene_count_before": 20,
+  "scene_count_after": 20,
+  "extra_png_before": [],
+  "extra_png_after": [],
+  "counts": {
+    "SIZE_CHANGED": 4,
+    "MATCHED": 16
+  },
+  "scenes": [
+    {
+      "scene": "游动",
+      "before_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_probe\\probe_01_游动.png",
+      "after_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_probe\\probe_01_游动.png",
+      "size_before": [
+        186,
+        166
+      ],
+      "size_after": [
+        208,
+        210
+      ],
+      "alpha_coverage_before": 0.1488,
+      "alpha_coverage_after": 0.1206,
+      "mean_color_before": [
+        102.3,
+        176.0,
+        136.6
+      ],
+      "mean_color_after": [
+        115.3,
+        179.0,
+        152.5
+      ],
+      "pixels_before": 30876,
+      "pixels_after": 43680,
+      "status": "SIZE_CHANGED",
+      "note": "画布尺寸变化 (186, 166) → (208, 210)",
+      "alpha_coverage_rel_drop": 0.1895,
+      "sheet": "D:/aiWorkCode/professionalWork/updateSnakePet/reports/OPT10_visualdiff\\sheet_游动.png"
+    },
+    {
+      "scene": "追食",
+      "before_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_probe\\probe_02_追食.png",
+      "after_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_probe\\probe_02_追食.png",
+      "size_before": [
+        328,
+        97
+      ],
+      "size_after": [
+        328,
+        140
+      ],
+      "alpha_coverage_before": 0.156,
+      "alpha_coverage_after": 0.1235,
+      "mean_color_before": [
+        111.9,
+        171.4,
+        133.7
+      ],
+      "mean_color_after": [
+        122.7,
+        174.7,
+        148.9
+      ],
+      "pixels_before": 31816,
+      "pixels_after": 45920,
+      "status": "SIZE_CHANGED",
+      "note": "画布尺寸变化 (328, 97) → (328, 140)",
+      "alpha_coverage_rel_drop": 0.2083,
+      "sheet": "D:/aiWorkCode/professionalWork/updateSnakePet/reports/OPT10_visualdiff\\sheet_追食.png"
+    },
+    {
+      "scene": "吃食瞬间",
+      "before_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_probe\\probe_03_吃食瞬间.png",
+      "after_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_probe\\probe_03_吃食瞬间.png",
+      "size_before": [
+        273,
+        104
+      ],
+      "size_after": [
+        273,
+        126
+      ],
+      "alpha_coverage_before": 0.3271,
+      "alpha_coverage_after": 0.2778,
+      "mean_color_before": [
+        166.7,
+        194.9,
+        179.4
+      ],
+      "mean_color_after": [
+        168.0,
+        195.3,
+        182.5
+      ],
+      "pixels_before": 28392,
+      "pixels_after": 34398,
+      "status": "SIZE_CHANGED",
+      "note": "画布尺寸变化 (273, 104) → (273, 126)",
+      "alpha_coverage_rel_drop": 0.1507,
+      "sheet": "D:/aiWorkCode/professionalWork/updateSnakePet/reports/OPT10_visualdiff\\sheet_吃食瞬间.png"
+    },
+    {
+      "scene": "睡觉",
+      "before_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_probe\\probe_04_睡觉.png",
+      "after_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_probe\\probe_04_睡觉.png",
+      "size_before": [
+        451,
+        110
+      ],
+      "size_after": [
+        451,
+        126
+      ],
+      "alpha_coverage_before": 0.1872,
+      "alpha_coverage_after": 0.1682,
+      "mean_color_before": [
+        166.7,
+        195.2,
+        179.4
+      ],
+      "mean_color_after": [
+        168.1,
+        195.6,
+        182.6
+      ],
+      "pixels_before": 49610,
+      "pixels_after": 56826,
+      "status": "SIZE_CHANGED",
+      "note": "画布尺寸变化 (451, 110) → (451, 126)",
+      "alpha_coverage_rel_drop": 0.1015,
+      "sheet": "D:/aiWorkCode/professionalWork/updateSnakePet/reports/OPT10_visualdiff\\sheet_睡觉.png"
+    },
+    {
+      "scene": "盘旋",
+      "before_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_probe\\probe_05_盘旋.png",
+      "after_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_probe\\probe_05_盘旋.png",
+      "size_before": [
+        466,
+        551
+      ],
+      "size_after": [
+        466,
+        551
+      ],
+      "alpha_coverage_before": 0.104,
+      "alpha_coverage_after": 0.1046,
+      "mean_color_before": [
+        103.3,
+        176.0,
+        132.3
+      ],
+      "mean_color_after": [
+        105.2,
+        176.3,
+        134.8
+      ],
+      "pixels_before": 256766,
+      "pixels_after": 256766,
+      "status": "MATCHED",
+      "diff_pixels": 4027,
+      "diff_ratio": 1.568,
+      "max_channel_diff": 217,
+      "note": "像素差异 1.568%（容差 8）",
+      "alpha_coverage_rel_drop": -0.0058,
+      "sheet": "D:/aiWorkCode/professionalWork/updateSnakePet/reports/OPT10_visualdiff\\sheet_盘旋.png"
+    },
+    {
+      "scene": "夜帽0度",
+      "before_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_probe\\probe_06_夜帽0度.png",
+      "after_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_probe\\probe_06_夜帽0度.png",
+      "size_before": [
+        466,
+        494
+      ],
+      "size_after": [
+        466,
+        494
+      ],
+      "alpha_coverage_before": 0.1088,
+      "alpha_coverage_after": 0.1089,
+      "mean_color_before": [
+        106.6,
+        176.2,
+        135.7
+      ],
+      "mean_color_after": [
+        106.4,
+        176.3,
+        135.5
+      ],
+      "pixels_before": 230204,
+      "pixels_after": 230204,
+      "status": "MATCHED",
+      "diff_pixels": 3422,
+      "diff_ratio": 1.487,
+      "max_channel_diff": 255,
+      "note": "像素差异 1.487%（容差 8）",
+      "alpha_coverage_rel_drop": -0.0009,
+      "sheet": "D:/aiWorkCode/professionalWork/updateSnakePet/reports/OPT10_visualdiff\\sheet_夜帽0度.png"
+    },
+    {
+      "scene": "夜帽90度",
+      "before_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_probe\\probe_07_夜帽90度.png",
+      "after_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_probe\\probe_07_夜帽90度.png",
+      "size_before": [
+        466,
+        494
+      ],
+      "size_after": [
+        466,
+        494
+      ],
+      "alpha_coverage_before": 0.1081,
+      "alpha_coverage_after": 0.1082,
+      "mean_color_before": [
+        105.9,
+        176.1,
+        135.4
+      ],
+      "mean_color_after": [
+        105.7,
+        176.2,
+        135.2
+      ],
+      "pixels_before": 230204,
+      "pixels_after": 230204,
+      "status": "MATCHED",
+      "diff_pixels": 3344,
+      "diff_ratio": 1.453,
+      "max_channel_diff": 198,
+      "note": "像素差异 1.453%（容差 8）",
+      "alpha_coverage_rel_drop": -0.0009,
+      "sheet": "D:/aiWorkCode/professionalWork/updateSnakePet/reports/OPT10_visualdiff\\sheet_夜帽90度.png"
+    },
+    {
+      "scene": "夜帽180度",
+      "before_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_probe\\probe_08_夜帽180度.png",
+      "after_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_probe\\probe_08_夜帽180度.png",
+      "size_before": [
+        466,
+        494
+      ],
+      "size_after": [
+        466,
+        494
+      ],
+      "alpha_coverage_before": 0.1081,
+      "alpha_coverage_after": 0.1083,
+      "mean_color_before": [
+        105.4,
+        175.6,
+        135.1
+      ],
+      "mean_color_after": [
+        105.3,
+        175.6,
+        134.8
+      ],
+      "pixels_before": 230204,
+      "pixels_after": 230204,
+      "status": "MATCHED",
+      "diff_pixels": 3387,
+      "diff_ratio": 1.471,
+      "max_channel_diff": 150,
+      "note": "像素差异 1.471%（容差 8）",
+      "alpha_coverage_rel_drop": -0.0019,
+      "sheet": "D:/aiWorkCode/professionalWork/updateSnakePet/reports/OPT10_visualdiff\\sheet_夜帽180度.png"
+    },
+    {
+      "scene": "夜帽270度",
+      "before_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_probe\\probe_09_夜帽270度.png",
+      "after_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_probe\\probe_09_夜帽270度.png",
+      "size_before": [
+        466,
+        494
+      ],
+      "size_after": [
+        466,
+        494
+      ],
+      "alpha_coverage_before": 0.1081,
+      "alpha_coverage_after": 0.1082,
+      "mean_color_before": [
+        106.0,
+        175.9,
+        135.4
+      ],
+      "mean_color_after": [
+        105.8,
+        176.0,
+        135.2
+      ],
+      "pixels_before": 230204,
+      "pixels_after": 230204,
+      "status": "MATCHED",
+      "diff_pixels": 3328,
+      "diff_ratio": 1.446,
+      "max_channel_diff": 150,
+      "note": "像素差异 1.446%（容差 8）",
+      "alpha_coverage_rel_drop": -0.0009,
+      "sheet": "D:/aiWorkCode/professionalWork/updateSnakePet/reports/OPT10_visualdiff\\sheet_夜帽270度.png"
+    },
+    {
+      "scene": "帽子圣诞",
+      "before_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_probe\\probe_10_帽子圣诞.png",
+      "after_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_probe\\probe_10_帽子圣诞.png",
+      "size_before": [
+        466,
+        494
+      ],
+      "size_after": [
+        466,
+        494
+      ],
+      "alpha_coverage_before": 0.1082,
+      "alpha_coverage_after": 0.1083,
+      "mean_color_before": [
+        108.1,
+        174.3,
+        132.9
+      ],
+      "mean_color_after": [
+        107.9,
+        174.4,
+        132.7
+      ],
+      "pixels_before": 230204,
+      "pixels_after": 230204,
+      "status": "MATCHED",
+      "diff_pixels": 3334,
+      "diff_ratio": 1.448,
+      "max_channel_diff": 150,
+      "note": "像素差异 1.448%（容差 8）",
+      "alpha_coverage_rel_drop": -0.0009,
+      "sheet": "D:/aiWorkCode/professionalWork/updateSnakePet/reports/OPT10_visualdiff\\sheet_帽子圣诞.png"
+    },
+    {
+      "scene": "帽子皇冠",
+      "before_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_probe\\probe_11_帽子皇冠.png",
+      "after_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_probe\\probe_11_帽子皇冠.png",
+      "size_before": [
+        466,
+        494
+      ],
+      "size_after": [
+        466,
+        494
+      ],
+      "alpha_coverage_before": 0.1081,
+      "alpha_coverage_after": 0.1082,
+      "mean_color_before": [
+        106.9,
+        174.8,
+        130.8
+      ],
+      "mean_color_after": [
+        106.8,
+        174.9,
+        130.6
+      ],
+      "pixels_before": 230204,
+      "pixels_after": 230204,
+      "status": "MATCHED",
+      "diff_pixels": 3195,
+      "diff_ratio": 1.388,
+      "max_channel_diff": 150,
+      "note": "像素差异 1.388%（容差 8）",
+      "alpha_coverage_rel_drop": -0.0009,
+      "sheet": "D:/aiWorkCode/professionalWork/updateSnakePet/reports/OPT10_visualdiff\\sheet_帽子皇冠.png"
+    },
+    {
+      "scene": "帽子学士",
+      "before_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_probe\\probe_12_帽子学士.png",
+      "after_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_probe\\probe_12_帽子学士.png",
+      "size_before": [
+        466,
+        494
+      ],
+      "size_after": [
+        466,
+        494
+      ],
+      "alpha_coverage_before": 0.1081,
+      "alpha_coverage_after": 0.1083,
+      "mean_color_before": [
+        103.2,
+        172.3,
+        130.7
+      ],
+      "mean_color_after": [
+        103.0,
+        172.4,
+        130.6
+      ],
+      "pixels_before": 230204,
+      "pixels_after": 230204,
+      "status": "MATCHED",
+      "diff_pixels": 3285,
+      "diff_ratio": 1.427,
+      "max_channel_diff": 150,
+      "note": "像素差异 1.427%（容差 8）",
+      "alpha_coverage_rel_drop": -0.0019,
+      "sheet": "D:/aiWorkCode/professionalWork/updateSnakePet/reports/OPT10_visualdiff\\sheet_帽子学士.png"
+    },
+    {
+      "scene": "帽子礼帽",
+      "before_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_probe\\probe_13_帽子礼帽.png",
+      "after_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_probe\\probe_13_帽子礼帽.png",
+      "size_before": [
+        466,
+        494
+      ],
+      "size_after": [
+        466,
+        494
+      ],
+      "alpha_coverage_before": 0.1081,
+      "alpha_coverage_after": 0.1082,
+      "mean_color_before": [
+        103.6,
+        171.0,
+        130.6
+      ],
+      "mean_color_after": [
+        103.4,
+        171.1,
+        130.4
+      ],
+      "pixels_before": 230204,
+      "pixels_after": 230204,
+      "status": "MATCHED",
+      "diff_pixels": 3364,
+      "diff_ratio": 1.461,
+      "max_channel_diff": 150,
+      "note": "像素差异 1.461%（容差 8）",
+      "alpha_coverage_rel_drop": -0.0009,
+      "sheet": "D:/aiWorkCode/professionalWork/updateSnakePet/reports/OPT10_visualdiff\\sheet_帽子礼帽.png"
+    },
+    {
+      "scene": "帽子棒球",
+      "before_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_probe\\probe_14_帽子棒球.png",
+      "after_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_probe\\probe_14_帽子棒球.png",
+      "size_before": [
+        466,
+        494
+      ],
+      "size_after": [
+        466,
+        494
+      ],
+      "alpha_coverage_before": 0.1081,
+      "alpha_coverage_after": 0.1082,
+      "mean_color_before": [
+        103.6,
+        174.7,
+        134.3
+      ],
+      "mean_color_after": [
+        103.4,
+        174.8,
+        134.1
+      ],
+      "pixels_before": 230204,
+      "pixels_after": 230204,
+      "status": "MATCHED",
+      "diff_pixels": 3260,
+      "diff_ratio": 1.416,
+      "max_channel_diff": 150,
+      "note": "像素差异 1.416%（容差 8）",
+      "alpha_coverage_rel_drop": -0.0009,
+      "sheet": "D:/aiWorkCode/professionalWork/updateSnakePet/reports/OPT10_visualdiff\\sheet_帽子棒球.png"
+    },
+    {
+      "scene": "帽子蝴蝶结",
+      "before_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_probe\\probe_15_帽子蝴蝶结.png",
+      "after_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_probe\\probe_15_帽子蝴蝶结.png",
+      "size_before": [
+        466,
+        494
+      ],
+      "size_after": [
+        466,
+        494
+      ],
+      "alpha_coverage_before": 0.1081,
+      "alpha_coverage_after": 0.1082,
+      "mean_color_before": [
+        105.5,
+        172.2,
+        130.5
+      ],
+      "mean_color_after": [
+        105.4,
+        172.3,
+        130.4
+      ],
+      "pixels_before": 230204,
+      "pixels_after": 230204,
+      "status": "MATCHED",
+      "diff_pixels": 3284,
+      "diff_ratio": 1.427,
+      "max_channel_diff": 150,
+      "note": "像素差异 1.427%（容差 8）",
+      "alpha_coverage_rel_drop": -0.0009,
+      "sheet": "D:/aiWorkCode/professionalWork/updateSnakePet/reports/OPT10_visualdiff\\sheet_帽子蝴蝶结.png"
+    },
+    {
+      "scene": "主题经典绿",
+      "before_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_probe\\probe_16_主题经典绿.png",
+      "after_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_probe\\probe_16_主题经典绿.png",
+      "size_before": [
+        466,
+        494
+      ],
+      "size_after": [
+        466,
+        494
+      ],
+      "alpha_coverage_before": 0.1081,
+      "alpha_coverage_after": 0.1082,
+      "mean_color_before": [
+        129.4,
+        194.7,
+        138.3
+      ],
+      "mean_color_after": [
+        130.3,
+        194.4,
+        141.1
+      ],
+      "pixels_before": 230204,
+      "pixels_after": 230204,
+      "status": "MATCHED",
+      "diff_pixels": 4160,
+      "diff_ratio": 1.807,
+      "max_channel_diff": 248,
+      "note": "像素差异 1.807%（容差 8）",
+      "alpha_coverage_rel_drop": -0.0009,
+      "sheet": "D:/aiWorkCode/professionalWork/updateSnakePet/reports/OPT10_visualdiff\\sheet_主题经典绿.png"
+    },
+    {
+      "scene": "主题蜜桃粉",
+      "before_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_probe\\probe_17_主题蜜桃粉.png",
+      "after_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_probe\\probe_17_主题蜜桃粉.png",
+      "size_before": [
+        466,
+        494
+      ],
+      "size_after": [
+        466,
+        494
+      ],
+      "alpha_coverage_before": 0.1081,
+      "alpha_coverage_after": 0.1082,
+      "mean_color_before": [
+        224.6,
+        160.8,
+        159.7
+      ],
+      "mean_color_after": [
+        222.5,
+        161.4,
+        161.7
+      ],
+      "pixels_before": 230204,
+      "pixels_after": 230204,
+      "status": "MATCHED",
+      "diff_pixels": 3646,
+      "diff_ratio": 1.584,
+      "max_channel_diff": 255,
+      "note": "像素差异 1.584%（容差 8）",
+      "alpha_coverage_rel_drop": -0.0009,
+      "sheet": "D:/aiWorkCode/professionalWork/updateSnakePet/reports/OPT10_visualdiff\\sheet_主题蜜桃粉.png"
+    },
+    {
+      "scene": "吐信",
+      "before_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_probe\\probe_18_吐信.png",
+      "after_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_probe\\probe_18_吐信.png",
+      "size_before": [
+        466,
+        494
+      ],
+      "size_after": [
+        466,
+        494
+      ],
+      "alpha_coverage_before": 0.1081,
+      "alpha_coverage_after": 0.1082,
+      "mean_color_before": [
+        103.9,
+        175.8,
+        132.3
+      ],
+      "mean_color_after": [
+        105.9,
+        175.9,
+        135.2
+      ],
+      "pixels_before": 230204,
+      "pixels_after": 230204,
+      "status": "MATCHED",
+      "diff_pixels": 4089,
+      "diff_ratio": 1.776,
+      "max_channel_diff": 248,
+      "note": "像素差异 1.776%（容差 8）",
+      "alpha_coverage_rel_drop": -0.0009,
+      "sheet": "D:/aiWorkCode/professionalWork/updateSnakePet/reports/OPT10_visualdiff\\sheet_吐信.png"
+    },
+    {
+      "scene": "长蛇100节",
+      "before_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_probe\\probe_19_长蛇100节.png",
+      "after_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_probe\\probe_19_长蛇100节.png",
+      "size_before": [
+        534,
+        789
+      ],
+      "size_after": [
+        534,
+        789
+      ],
+      "alpha_coverage_before": 0.083,
+      "alpha_coverage_after": 0.0845,
+      "mean_color_before": [
+        107.5,
+        178.3,
+        137.4
+      ],
+      "mean_color_after": [
+        108.7,
+        178.6,
+        139.1
+      ],
+      "pixels_before": 421326,
+      "pixels_after": 421326,
+      "status": "MATCHED",
+      "diff_pixels": 6901,
+      "diff_ratio": 1.638,
+      "max_channel_diff": 255,
+      "note": "像素差异 1.638%（容差 8）",
+      "alpha_coverage_rel_drop": -0.0181,
+      "sheet": "D:/aiWorkCode/professionalWork/updateSnakePet/reports/OPT10_visualdiff\\sheet_长蛇100节.png"
+    },
+    {
+      "scene": "菜单",
+      "before_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_probe\\probe_20_菜单.png",
+      "after_file": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_probe\\probe_20_菜单.png",
+      "size_before": [
+        254,
+        678
+      ],
+      "size_after": [
+        254,
+        678
+      ],
+      "alpha_coverage_before": 0.9827,
+      "alpha_coverage_after": 0.9827,
+      "mean_color_before": [
+        227.4,
+        233.1,
+        232.2
+      ],
+      "mean_color_after": [
+        227.4,
+        233.1,
+        232.2
+      ],
+      "pixels_before": 172212,
+      "pixels_after": 172212,
+      "status": "MATCHED",
+      "diff_pixels": 0,
+      "diff_ratio": 0.0,
+      "max_channel_diff": 0,
+      "note": "像素差异 0.000%（容差 8）",
+      "alpha_coverage_rel_drop": 0.0,
+      "sheet": "D:/aiWorkCode/professionalWork/updateSnakePet/reports/OPT10_visualdiff\\sheet_菜单.png"
+    }
+  ],
+  "suspects": [
+    {
+      "scene": "游动",
+      "reason": "alpha 覆盖率下降 19.0%（可能有部件没画出来）"
+    },
+    {
+      "scene": "追食",
+      "reason": "alpha 覆盖率下降 20.8%（可能有部件没画出来）"
+    },
+    {
+      "scene": "吃食瞬间",
+      "reason": "alpha 覆盖率下降 15.1%（可能有部件没画出来）"
+    }
+  ],
+  "verdict_hint": "REVIEW",
+  "note": "verdict_hint 只是提示；G3 的最终判定必须由人或 AI 审阅 sheet_*.png 后给出"
+}

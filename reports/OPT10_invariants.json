@@ -1,0 +1,63 @@
+{
+  "tag": "OPT10",
+  "mode": "invariants",
+  "checked_at": "2026-09-21T22:25:09+08:00",
+  "project": "D:\\aiWorkCode\\professionalWork\\updateSnakePet",
+  "compared_against": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_baseline.json",
+  "tests": {
+    "changed": [],
+    "missing": [],
+    "added": [
+      "tests/test_menu_rclick.py"
+    ]
+  },
+  "reports_existing": {
+    "changed": [],
+    "missing": [],
+    "added": []
+  },
+  "user_savefiles": {
+    "changed": [
+      "pet_state.json"
+    ],
+    "missing": [],
+    "added": []
+  },
+  "source_changes": {
+    "changed": [
+      "snake_pet/__init__.py",
+      "snake_pet/app.py"
+    ],
+    "missing": [],
+    "added": []
+  },
+  "source_changed_count": 2,
+  "violations": [
+    {
+      "inv": "INV-07",
+      "severity": "P0",
+      "what": "tests/ 发生变更（测试被改动 → G1 结果作废）",
+      "detail": {
+        "changed": [],
+        "missing": [],
+        "added": [
+          "tests/test_menu_rclick.py"
+        ]
+      }
+    },
+    {
+      "inv": "INV-02",
+      "severity": "P0",
+      "what": "用户真实存档被写入（污染了用户宠物数据）",
+      "detail": {
+        "changed": [
+          "pet_state.json"
+        ],
+        "missing": [],
+        "added": []
+      }
+    }
+  ],
+  "overall": "FAIL",
+  "note": "source 的变化属预期，但必须与 scope/change_list.yaml 的文件集合完全一致（人工核对）"
+}

@@ -13,5 +13,5 @@ v4 基线重建包(P0), 模块划分:
   app           SnakePet 组装: 窗口/钩子线程/事件队列/主循环/看门狗 + CLI 三件套
 '''
 
-__version__ = '5.2.1'
+__version__ = '5.2.2'
 APP_NAME = 'SnakePet'

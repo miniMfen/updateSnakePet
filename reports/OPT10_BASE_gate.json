@@ -1,0 +1,18 @@
+{
+  "tag": "OPT10_BASE",
+  "mode": "selfcheck",
+  "checked_at": "2026-09-21T21:52:58+08:00",
+  "project": "D:\\aiWorkCode\\professionalWork\\updateSnakePet",
+  "baseline_selfcheck": {
+    "pytest_all_green": true,
+    "selftest_ok": true,
+    "exceptions_empty": true,
+    "skipped": [],
+    "raw_pytest": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_pytest.txt",
+    "raw_selftest": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_selftest.txt",
+    "raw_soak": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_soak.json",
+    "raw_probe": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_probe",
+    "all_pass": true
+  },
+  "overall": "PASS"
+}

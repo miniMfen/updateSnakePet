@@ -1,0 +1,46 @@
+{
+  "screen": {
+    "desktop_points": 0,
+    "app_window_points": 1550,
+    "app_classes": [
+      "Chrome_RenderWidgetHostHWND",
+      "Chrome_WidgetWin_1",
+      "MSTaskSwWClass",
+      "Shell_TrayWnd",
+      "TrayNotifyWnd"
+    ],
+    "desktop_classes": []
+  },
+  "scenes": {
+    "B_appwindow_on_snake": {
+      "at": [
+        1296,
+        790
+      ],
+      "top_class": "Chrome_RenderWidgetHostHWND",
+      "menu_opened": false,
+      "expect": false,
+      "shot": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_live_B_snake_covered.png"
+    }
+  },
+  "live_run": {
+    "seconds": 120,
+    "frames": 5841,
+    "frame_ms_avg": 14.211,
+    "frame_ms_max": 45.432,
+    "hwnd_alive": true,
+    "window_rect": [
+      419,
+      725,
+      632,
+      816
+    ],
+    "watchdog_log": {
+      "失败": 1,
+      "长时间被遮挡": 2,
+      "刷新画面": 2
+    },
+    "shot_after_run": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_live_D_after_run.png"
+  },
+  "verdict": "PARTIAL"
+}

@@ -456,6 +456,10 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
                     continue
                 (lx, ly) = (x - self.vx, y - self.vy)
                 hit = self._hit_snake(lx, ly)
+                if hit and not self._point_is_desktop(x, y):
+                    # [v5.2.2 修复 BUG-C] 坐标命中蛇身,但那个屏幕位置上盖着别的应用窗口
+                    # (蛇其实被遮住、用户看不见) → 不响应,免得在别人的窗口里误触互动。
+                    hit = False
                 if hit:
                     # 双击优先(双击 = hop+气泡;单按蛇身无动作,防误触)
                     if now - self._last_lclick < 0.45 and math.hypot(x - self._last_lx, y - self._last_ly) < 70:
@@ -475,20 +479,62 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
             elif kind == 'MOVE':
                 self._interact.move(x, y, now)
             elif kind == 'R':
-                hit = self._hit_snake(x - self.vx, y - self.vy)
-                if not self.menu_open and hit:
+                # [v5.2.2 修复 BUG-C] 原先只有 `_hit_snake(x - vx, y - vy)`:同一个坐标在
+                # "蛇被别的应用窗口盖住"时同样成立,于是用户在全屏的其它软件里右键、
+                # 只要位置与蛇重合,菜单就会弹出来打断工作(用户 2026-09-21 报告)。
+                # 现在追加归属校验:那个位置上蛇必须真的可见。
+                if not self.menu_open and self._should_open_menu_at(x, y):
                     self._track_menu(x, y)
 
-    def _is_desktop_at(self, x, y):
-        '''是否在桌面(而非软件/网页窗口)上点击:只有桌面才生成食物'''
-        h = window_from_point(x, y)
+    def _point_is_desktop(self, x, y):
+        '''屏幕点 (x, y) 上「蛇是否可见可交互」:该点最顶层窗口是桌面系(或蛇自己)。
+
+        [v5.2.2 修复 BUG-C] 用户报告:在其它应用窗口(例:全屏的 WorkBuddy 开发窗口)里右键,
+        只要坐标**刚好与蛇在桌面上的位置重合**,蛇的菜单照样弹出来打断工作 —— 而那时蛇其实
+        被窗口盖住,用户根本看不见它。根因是右键分支只做坐标命中判定,没有任何归属校验
+        (同文件的左键分支有 _is_desktop_at,右键没有)。
+
+        本机实测(2026-09-21, Win11, 2560x1600;证据 reports/BUG_RCLICK_check.json):
+          * 全屏应用窗口盖住桌面时,window_from_point(蛇头) 返回该应用窗口 → 桌面系=False
+          * 桌面空白处返回桌面图标层 SysListView32 → 桌面系=True
+          * **把蛇窗口 SetWindowPos(HWND_TOPMOST) 置顶后,window_from_point(蛇头) 依然返回
+            SysListView32,从不返回蛇自己的 hwnd** —— 本机 WindowFromPoint 不参与
+            UpdateLayeredWindow 分层窗口的 alpha 命中测试。
+            ⇒ 判据只能写成"最顶层是不是**桌面系**";下面 `h == self._hwnd` 保留为其它环境
+              (分层窗口参与命中测试时)的兜底分支。
+        '''
+        if self.headless:
+            return True          # 无真实窗口:不阻断(也让 soak / render-probe 零额外开销)
+        try:
+            h = window_from_point(x, y)
+        except Exception:
+            return True
         if not h:
-            return True
+            return True          # 取不到归属 → 不阻断(与既有 _is_desktop_at 同语义)
         if h == self._hwnd:
-            return True
-        if self._hit_snake(x, y):
-            return True
-        return is_desktop_window(h)
+            return True          # 该像素就是蛇自己(不透明区域)在最上层
+        if is_desktop_window(h):
+            return True          # Progman / WorkerW / SHELLDLL_DefView / SysListView32
+        cls = get_class_name(h)
+        # shell 覆盖层(全屏透明墨迹层等):不影响"桌面看得见",不能因为它禁用交互
+        return any(cls.startswith(prefix) for prefix in SHELL_OVERLAY_CLASSES)
+
+    def _should_open_menu_at(self, x, y):
+        '''该屏幕位置上按右键是否应弹出菜单:坐标命中蛇身 **且** 蛇在这里真的可见。
+
+        [v5.2.2 修复 BUG-C] 修复前这里只有 `_hit_snake(...)`,缺后半句。
+        '''
+        return self._hit_snake(x - self.vx, y - self.vy) and self._point_is_desktop(x, y)
+
+    def _is_desktop_at(self, x, y):
+        '''是否在桌面(而非软件/网页窗口)上点击:只有桌面才生成食物。
+
+        [v5.2.2] 去掉原先的 `if self._hit_snake(x, y): return True` 自命中短路 ——
+        它把"坐标命中蛇身"当成"点在桌面上",等于把归属校验整个绕过;而且那里传的是
+        **屏幕坐标**,与 `seg_pos` 的**世界坐标**口径不一致(只有 vx=vy=0 时碰巧等价,
+        实测本机 vx=vy=0,故它一直是死代码)。现在统一委托 _point_is_desktop()。
+        '''
+        return self._point_is_desktop(x, y)
 
     def _hit_snake(self, x, y):
         for gx, gy in self.seg_pos:

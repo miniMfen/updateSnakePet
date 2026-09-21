@@ -1,0 +1,22 @@
+{
+  "tag": "OPT10_BASE_S2",
+  "mode": "selfcheck",
+  "checked_at": "2026-09-21T21:55:59+08:00",
+  "project": "D:\\aiWorkCode\\professionalWork\\updateSnakePet",
+  "baseline_selfcheck": {
+    "pytest_all_green": null,
+    "selftest_ok": false,
+    "exceptions_empty": true,
+    "skipped": [
+      "probe",
+      "pytest",
+      "selftest"
+    ],
+    "raw_pytest": null,
+    "raw_selftest": null,
+    "raw_soak": "D:\\aiWorkCode\\professionalWork\\updateSnakePet\\reports\\OPT10_BASE_S2_soak.json",
+    "raw_probe": null,
+    "all_pass": false
+  },
+  "overall": "FAIL"
+}

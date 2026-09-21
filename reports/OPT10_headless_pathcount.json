@@ -1,0 +1,25 @@
+{
+  "seconds": 30,
+  "headless": true,
+  "phase1_headless_loop": {
+    "point_is_desktop": 0,
+    "should_open_menu_at": 0,
+    "drain_events": 4936,
+    "events_seen": 0,
+    "hit_snake": 0
+  },
+  "phase1_frames": 1667,
+  "phase1_frame_ms_avg": 7.748,
+  "phase2_control": {
+    "delta_drain_events": 2,
+    "delta_hit_snake": 1,
+    "delta_point_is_desktop": 1,
+    "delta_should_open_menu_at": 1,
+    "events_seen": 2
+  },
+  "verdict": {
+    "new_paths_executed_in_headless": true,
+    "old_path_executed_in_headless": false,
+    "instrumentation_works": true
+  }
+}
