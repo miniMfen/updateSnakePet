@@ -182,17 +182,29 @@ class Snake:
         self.heading_angle += max(-max_turn, min(max_turn, d))
 
     # ---- 主步进 ----
-    def move(self, step, active, foods, eat_enabled):
+    def move(self, step, active, foods, eat_enabled, chase=None):
+        '''推进一帧。
+
+        active      速度/活跃档：决定本帧步速与曲率（MAX_TURN_ACTIVE/QUIET）
+        eat_enabled 是否允许进食（来自「不再吃食物」开关）
+        chase       是否把食物当目标追过去；**默认与 active 相同**（保持既有语义）。
+
+        [v5.2 · 修 BUG-A] 原先"追食"与"进食"都挂在 active 上，于是「安静档」
+        （app 层 active=False）会连带把进食也否决掉 —— 用户没开「不再吃食物」，
+        蛇却怎么也不来吃。现在把 chase 显式暴露出来：安静档只降速，不再否决进食。
+        '''
         (hx, hy) = self.head()
         if self.coil is not None:
-            return self._move_coil(active, foods, eat_enabled)
+            return self._move_coil(active, foods, eat_enabled, chase)
+        if chase is None:
+            chase = active
         if self.forced_angle is not None:
             target = self.forced_angle
             self.forced_angle = None
             max_turn = math.pi / 4 + 1e-06   # 盘旋兼容层:每帧至多 45° 自转
-        elif active and eat_enabled and foods and not getattr(self, 'ignore_food', False):
+        elif chase and eat_enabled and foods and not getattr(self, 'ignore_food', False):
             target = self._chase(hx, hy, step, foods)
-            max_turn = MAX_TURN_ACTIVE
+            max_turn = MAX_TURN_ACTIVE if active else MAX_TURN_QUIET
         else:
             target = self._wander(hx, hy, step)
             max_turn = MAX_TURN_QUIET
@@ -208,7 +220,7 @@ class Snake:
         while len(self.path) > MAX_PATH:
             self.path.popleft()
         eaten = []
-        if active and eat_enabled:
+        if chase and eat_enabled:
             for (fx, fy) in foods:
                 if math.hypot(fx - nx, fy - ny) <= EAT_RADIUS:
                     eaten.append((fx, fy))
@@ -217,7 +229,10 @@ class Snake:
 
     # ---- 盘旋(P2):「导轨上的胡萝卜」追逐法 —— 胡萝卜固定在头自身角度前方
     # ω×look 处、半径取计划值:角度不滞后、半径自然收敛,复用限速转向 ----
-    def _move_coil(self, active, foods, eat_enabled):
+    def _move_coil(self, active, foods, eat_enabled, chase=None):
+        '''盘旋推进。chase 语义同 move():默认跟随 active（见 move 的说明）。'''
+        if chase is None:
+            chase = active
         plan = self.coil
         (hx, hy) = self.head()
         r_act = max(4.0, math.hypot(hx - plan.cx, hy - plan.cy))
@@ -248,7 +263,7 @@ class Snake:
         while len(self.path) > MAX_PATH:
             self.path.popleft()
         eaten = []
-        if active and eat_enabled:
+        if chase and eat_enabled:
             for (fx, fy) in foods:
                 if math.hypot(fx - nx, fy - ny) <= EAT_RADIUS:
                     eaten.append((fx, fy))

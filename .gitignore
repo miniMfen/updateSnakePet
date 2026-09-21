@@ -11,3 +11,7 @@ reports/_tmp/
 reports/P0_parity_shot1.png
 reports/P0_parity_shot2.png
 reports/P7_live.png
+# 工具隔离存档目录(自动化采集/测试用,随时可删;见工作流 09-ops)
+reports/_*_home/
+# 用户配置备份(不纳入版本库)
+snake_pet_config.json.*

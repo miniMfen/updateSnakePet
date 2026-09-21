@@ -1,0 +1,52 @@
+{
+  "BUG_A": {
+    "quiet_allowed": {
+      "eaten": 3,
+      "max_step": 1.16,
+      "state": "quiet",
+      "no_eat": false,
+      "seconds": 12.0,
+      "tag": ""
+    },
+    "quiet_banned": {
+      "eaten": 0,
+      "max_step": 1.16,
+      "state": "quiet",
+      "no_eat": true,
+      "seconds": 12.0,
+      "tag": ""
+    },
+    "auto_allowed": {
+      "eaten": 3,
+      "max_step": 6.91,
+      "state": "auto",
+      "no_eat": false,
+      "seconds": 12.0,
+      "tag": ""
+    }
+  },
+  "BUG_B": {
+    "watchdog_log": {
+      "刷新画面": 3,
+      "长时间被遮挡": 3
+    },
+    "z_ref": 38,
+    "z_ours_before": 39,
+    "place_below_fg_applied": true,
+    "z_after_place_below_fg": 36,
+    "z_ours_after_setpos": 39,
+    "z_ref_after": 38,
+    "below_ref_after_setpos": true,
+    "still_visible": false,
+    "screen_rgb": [
+      31,
+      31,
+      31
+    ],
+    "expect_rgb": [
+      214,
+      244,
+      222
+    ]
+  }
+}

@@ -30,7 +30,15 @@ SM_CXVIRTUALSCREEN, SM_CYVIRTUALSCREEN = (78, 79)
 ERROR_ALREADY_EXISTS = 183
 HWND_BOTTOM = 1
 HWND_NOTOPMOST = -2
-SWP_FLAGS = 0x16  # SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE
+# SetWindowPos 通用标志：只改 z 序，不动位置/尺寸、不激活。
+# [v5.2 修复 BUG-B] 原值 0x16 = NOMOVE(0x02)|**NOZORDER(0x04)**|NOACTIVATE(0x10)，
+# 既漏了 NOSIZE(0x01)、又多了 **SWP_NOZORDER** —— 带 NOZORDER 时 z 序参数被完全忽略，
+# 于是 sink_window_bottom()/untopmost_window() 一直是**空操作**
+# （实测：调用前后窗口在顶层 z 序里的索引恒为 33，纹丝不动）。
+SWP_NOSIZE = 0x0001
+SWP_NOMOVE = 0x0002
+SWP_NOACTIVATE = 0x0010
+SWP_FLAGS = SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE      # 0x13
 SRCCOPY = 13369376
 
 user32 = ctypes.windll.user32
@@ -157,12 +165,44 @@ def create_layered_window(title, w, h, topmost=False):
 
 
 def sink_window_bottom(hwnd):
-    '''沉底显示:被任何应用窗口覆盖,回到桌面才可见(v5 设计不变量)'''
+    '''沉底:被任何应用窗口覆盖,回到桌面才可见(v5 设计不变量)。
+
+    ⚠ [v5.2] 本机(Win11 + 第三方壁纸绘制层)实测:**真的沉底会把窗口沉到壁纸层之下**,
+    宠物彻底不可见(屏幕采样只剩壁纸色，比"浮在上面"更糟)。
+    因此 v5.2 起 app 层**不再在启动/重建时调用本函数**,改为"不重建即不抬升"策略
+    (见 app._self_check / app._rebuild_window 的说明)。
+    本函数保留实现供其它环境使用；调用前请务必确认宠物仍然可见。
+    '''
     user32.SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_FLAGS)
 
 
 def untopmost_window(hwnd):
+    '''取消置顶。
+
+    ⚠ [v5.2] 该标志(HWND_NOTOPMOST)的语义是"**置于所有非置顶窗口之上**"：
+    对刚创建、尚未交互的窗口调用它，等于把它钉在普通窗口带最上层 —— 与"沉底显示"
+    的设计不变量**相反**。这正是用户报告的"蛇跳到微信/资源管理器上面"的直接原因，
+    v5.2 起 app 层不再调用（见 app._rebuild_window 的说明）。
+    '''
     user32.SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_FLAGS)
+
+
+def place_below_foreground_window(hwnd):
+    '''把窗口放到「当前前台窗口」的**正下方**（不激活、不移动、不改尺寸）。
+
+    [v5.2 · BUG-B 第二道保险] 本机实测：`SetWindowPos(hwnd, X)` 会把 hwnd 放到 X 的
+    正下方（X 在前）。于是"放到前台窗口正下方"= 宠物不会遮挡**用户正在使用的那个窗口**，
+    而回到桌面时依然可见 —— 正好对齐"打开任何软件都会盖住它"的设计不变量。
+
+    前台窗口是自己/桌面系/不存在时不做任何事。返回是否真的做了 z 序调整。
+    '''
+    try:
+        fg = user32.GetForegroundWindow()
+    except Exception:
+        return False
+    if not fg or fg == hwnd or is_desktop_window(fg):
+        return False
+    return bool(user32.SetWindowPos(hwnd, fg, 0, 0, 0, 0, SWP_FLAGS))
 
 
 def show_window(hwnd, cmd):

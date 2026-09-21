@@ -30,8 +30,9 @@ from .platform_win import (BITMAPINFOHEADER, HOOKPROC, MSLLHOOKSTRUCT, PM_REMOVE
                            create_layered_window, destroy_window, ensure_dpi_aware,
                            enum_topmost_layered_windows, get_class_name, grab_screen_bgra,
                            is_desktop_window,
-                           is_window_visible, primary_screen_metric, sink_window_bottom,
-                           untopmost_window, virtual_screen, window_from_point, workarea)
+                           is_window_visible, primary_screen_metric,
+                           place_below_foreground_window,
+                           virtual_screen, window_from_point, workarea)
 from .render import RenderMixin
 from .snake import Snake
 from .sprites import load_snake_sprite, load_sprite, sprite_dominant
@@ -189,14 +190,22 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
                 logging.info('成就解锁(读档): %s', aid)
         else:
             self._ach.days.add(time.strftime('%Y-%m-%d'))
-        if not headless and self._hwnd:
-            sink_window_bottom(self._hwnd)
+        # [v5.2 修复 BUG-B] 这里原先调 sink_window_bottom()（沉底）。
+        # 本机(Win11 + 第三方壁纸绘制层)实测：SetWindowPos(HWND_BOTTOM) 会把窗口沉到
+        # **壁纸绘制层之下**，宠物彻底不可见（屏幕采样只剩壁纸色）—— 比"浮在上面"更糟。
+        # 改为"放到当前前台窗口的正下方"：既不遮挡用户正在使用的窗口，回到桌面又可见
+        # （正好对齐"打开任何软件都会盖住它"的设计不变量）。
         if not headless and not self._start_hook():
             logging.warning('全局鼠标钩子不可用:左键生成食物/右键菜单将不可用')
+        if not headless and self._hwnd:
+            place_below_foreground_window(self._hwnd)
         self._last_check = time.monotonic()
         self._avoid = []
         self._covered_since = None
         self._last_cover_rebuild = 0
+        self._stale_checks = 0        # 像素陈旧连续帧计数(防偶发误判)
+        self._last_stale_refresh = 0.0  # 因像素不新鲜而重推画面的节流
+        self._last_create_try = 0.0   # 窗口句柄丢失后的重试节流
 
     # ---- 窗口与 DIB ----
     def _create_window(self):
@@ -529,13 +538,20 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
             self._render()
             return
         state = self.cfg['state']
+        eat_enabled = not self.cfg['no_eat']
+        # [v5.2 修复 BUG-A] "要不要去吃"只由「有食物」+「不再吃食物」决定,与档位解耦。
+        # 原先 quiet 档把 active 直接压成 False,而进食判定挂在 active 上
+        # (snake.move 里 `if active and eat_enabled`),于是**安静档完全不吃食物** ——
+        # 用户没开「不再吃食物」却怎么也不来吃。现在安静档 = 慢速档:照样去吃,只是
+        # 保持安静步速、不加速。
+        want_eat = bool(self.foods) and eat_enabled
         if state == 'quiet':
             active = False
         elif state == 'active':
             active = True
         else:
             # [P0-确认] 依据 dis_step.txt 行 1736:auto 档 = 有食物且允许进食才活跃
-            active = bool(self.foods) and (not self.cfg['no_eat'])
+            active = want_eat
         if now - self._last_check >= 1.0:
             self._last_check = now
             self._refresh_avoid()
@@ -545,7 +561,7 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
         self._consume_interact(now)
         self._coil_step(active)
         dragging = self._interact.state == InteractSM.DRAG
-        if active and self.foods and self._break_chase <= 0:
+        if want_eat and self._break_chase <= 0:
             (hx, hy) = self.snake.head()
             f0 = min(self.foods, key=lambda f: (f['x'] - hx) ** 2 + (f['y'] - hy) ** 2)
             (fx, fy) = (f0['x'], f0['y'])
@@ -572,7 +588,7 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
         if dragging:
             eaten = []      # 拎起中:头由 drag 事件驱动,自动位移暂停
         else:
-            eaten = self.snake.move(step, active, pts, not self.cfg['no_eat'])
+            eaten = self.snake.move(step, active, pts, eat_enabled, chase=want_eat)
         self._growth_step(active)
         for px, py in eaten:
             self._remove_food_at(px, py)
@@ -618,9 +634,30 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
     # ---- 合成自愈看门狗 ----
     def _self_check(self):
         '''合成自愈:窗口未被遮挡但蛇头处像素缺失/滞后 → 重建窗口。
-        长时间被遮挡(如浏览器盖住桌面)会让合成器冻结宠物表面,
-        被遮挡期间周期性重建 + 遮挡结束立即重建一次, 保证回来时是活的。'''
-        if self.headless or not self._hwnd:
+
+        长时间被遮挡(如浏览器盖住桌面)会让合成器冻结宠物表面,被遮挡期间周期性
+        **刷新画面** + 遮挡结束立即刷新一次, 保证回来时是活的。
+
+        [v5.2 修复 BUG-B · 三处]
+        ① 遮挡判定原先只看 `window_from_point(蛇头) != 自己的 hwnd`。本机(Win11)实测:
+           该函数在桌面区域**恒定返回桌面图标层 SysListView32**,于是"被遮挡"永远为真
+           → 每 60 秒重建一次窗口(历史日志 663 次"长时间被遮挡" / 0 次"遮挡结束")。
+           现在用 `is_desktop_window()` 把桌面系窗口视为**没被遮挡**。
+        ② 被遮挡期间与遮挡结束**只重推画面,不再销毁重建窗口** —— 重建会让新窗口落在
+           "普通窗口带最上层",也就是用户看到的"蛇跳到微信/资源管理器上面"。
+        ③ 像素陈旧判定加一帧确认(连续两帧都陈旧才重建),避免偶发抖动误触发。
+        '''
+        if self.headless:
+            return
+        now = time.monotonic()
+        if not self._hwnd:
+            # 句柄丢失/重建失败:限速重试,避免看门狗从此永久失效(蛇再也不出现)
+            if now - self._last_create_try >= 5.0:
+                self._last_create_try = now
+                self._create_window()
+                if self._hwnd:
+                    logging.warning('窗口句柄丢失,已重新创建')
+                    self._covered_since = None
             return
         (hx, hy) = self.snake.head()
         (hx, hy) = (int(hx), int(hy))
@@ -630,39 +667,69 @@ class SnakePet(FxMixin, BehaviorMixin, RenderMixin, MenuMixin):
             return
         try:
             top = window_from_point(hx, hy)
-            now = time.monotonic()
-            if top != self._hwnd:
+            # 桌面系窗口(Progman/WorkerW/SHELLDLL_DefView/SysListView32 等)说明脚下是桌面,
+            # 不构成"被应用窗口遮挡";本机 WindowFromPoint 恒返回它,不排除就会无限重建。
+            covered = (top != self._hwnd) and not is_desktop_window(top)
+            if covered:
                 if self._covered_since is None:
                     self._covered_since = now
                     return
                 if now - self._covered_since > 15.0 and now - self._last_cover_rebuild >= 60.0:
                     self._last_cover_rebuild = now
-                    logging.warning('长时间被遮挡,主动重建窗口')
-                    self._rebuild_window()
+                    logging.warning('长时间被遮挡,刷新画面')
+                    self._render()          # 只重推画面:不动窗口 → 不改变 z 序
                 return
             if self._covered_since is not None:
                 was_long = now - self._covered_since > 15.0
                 self._covered_since = None
                 if was_long:
-                    logging.warning('遮挡结束,重建窗口恢复画面')
-                    self._rebuild_window()
+                    logging.warning('遮挡结束,刷新画面')
+                    self._render()
                     return
             if self._count_head_color_region(hx, hy, half=20) >= 3 \
                     or self._count_greens_region(hx - 20, hy - 20, 40, 40) >= 4:
+                self._stale_checks = 0
                 return
-            logging.warning('检测到合成失效/滞后,重建窗口')
-            self._rebuild_window()
+            # 蛇头处采样不到我们的颜色:可能是"被别的窗口盖住"(正常),也可能是"合成器
+            # 冻结"。本机 WindowFromPoint 不可用(恒返回桌面层),**无法区分这两者** ——
+            # 而两者的补救都是重新推送画面(UpdateLayeredWindow);重建窗口则会把蛇抬到
+            # 前台窗口之上(用户报的"跳到非桌面页面上")。故此处**只重推,不重建**。
+            self._stale_checks += 1
+            if self._stale_checks < 3:
+                return
+            self._stale_checks = 0
+            if now - self._last_stale_refresh < 30.0:
+                return
+            self._last_stale_refresh = now
+            logging.warning('蛇头像素不新鲜,重推画面(不重建窗口,避免抬升 z 序)')
+            self._render()
         except Exception:
             return
 
     def _rebuild_window(self):
-        '''销毁并重建分层窗口(恢复被合成器冻结的表面)。重建后保持普通非置顶'''
+        '''销毁并重建分层窗口(恢复被合成器冻结的表面)。
+
+        [v5.2 修复 BUG-B]
+        ① 重建后**不再做"钉在普通窗口带最上层"的 z 序操作**。原先调
+           `untopmost_window()`(HWND_NOTOPMOST)，而该标志的语义是"置于所有非置顶窗口
+           之上" → 正好把刚建出来的窗口钉在最上层，与"沉底显示"的设计不变量相反
+           （用户报的"蛇跳到非桌面页面上"）。现在改为把新窗口放到**当前前台窗口的
+           正下方**：既不遮挡用户正在用的窗口，回到桌面又可见。
+        ② 同时清掉遮挡计时与陈旧计数，避免紧接着又触发一次重建(连锁重建)。
+        ③ 句柄校验:创建失败时明确告警，交给 _self_check 的限速重试兜底。
+        '''
         try:
-            destroy_window(self._hwnd)
+            if self._hwnd:
+                destroy_window(self._hwnd)
             self._hwnd = None
             self._create_window()
-            untopmost_window(self._hwnd)
+            if self._hwnd:
+                place_below_foreground_window(self._hwnd)
+            self._covered_since = None
+            self._stale_checks = 0
             self._last_check = time.monotonic() + 3
+            if not self._hwnd:
+                logging.warning('重建窗口失败:句柄为空')
         except Exception as e:
             logging.warning('重建窗口失败: %r', e)
 
