@@ -1,0 +1,140 @@
+{
+  "compare": "MERGE_probe（2026-09-20 主干合并交付）vs V521_probe（v5.2.1 @f2a87f9）",
+  "collect_params": {
+    "command": "python -m snake_pet --render-probe <dir>",
+    "isolated_home": "reports/_v521_home（镜像 sprites/ 9 文件）",
+    "env": "SNAKEPET_HOME=<isolated> / SNAKEPET_TOOL_HOME=1",
+    "bounds": [
+      26,
+      26,
+      1894,
+      1054
+    ]
+  },
+  "scenes": 20,
+  "identical": 20,
+  "non_identical": 0,
+  "overall": "PASS",
+  "rows": [
+    {
+      "scene": "probe_01_游动.png",
+      "sha_merge": "cd335d09407cac3d",
+      "sha_v521": "cd335d09407cac3d",
+      "status": "IDENTICAL"
+    },
+    {
+      "scene": "probe_02_追食.png",
+      "sha_merge": "99d855e6d86a32bc",
+      "sha_v521": "99d855e6d86a32bc",
+      "status": "IDENTICAL"
+    },
+    {
+      "scene": "probe_03_吃食瞬间.png",
+      "sha_merge": "8ec334b0722d43ab",
+      "sha_v521": "8ec334b0722d43ab",
+      "status": "IDENTICAL"
+    },
+    {
+      "scene": "probe_04_睡觉.png",
+      "sha_merge": "da03e1610c9d2c49",
+      "sha_v521": "da03e1610c9d2c49",
+      "status": "IDENTICAL"
+    },
+    {
+      "scene": "probe_05_盘旋.png",
+      "sha_merge": "5f256b0763dd0511",
+      "sha_v521": "5f256b0763dd0511",
+      "status": "IDENTICAL"
+    },
+    {
+      "scene": "probe_06_夜帽0度.png",
+      "sha_merge": "35b1b279819e54ad",
+      "sha_v521": "35b1b279819e54ad",
+      "status": "IDENTICAL"
+    },
+    {
+      "scene": "probe_07_夜帽90度.png",
+      "sha_merge": "5b701d55121fcb2a",
+      "sha_v521": "5b701d55121fcb2a",
+      "status": "IDENTICAL"
+    },
+    {
+      "scene": "probe_08_夜帽180度.png",
+      "sha_merge": "a9f8630af211973f",
+      "sha_v521": "a9f8630af211973f",
+      "status": "IDENTICAL"
+    },
+    {
+      "scene": "probe_09_夜帽270度.png",
+      "sha_merge": "fa8a7935cf8d8340",
+      "sha_v521": "fa8a7935cf8d8340",
+      "status": "IDENTICAL"
+    },
+    {
+      "scene": "probe_10_帽子圣诞.png",
+      "sha_merge": "4de4a0ff304910ba",
+      "sha_v521": "4de4a0ff304910ba",
+      "status": "IDENTICAL"
+    },
+    {
+      "scene": "probe_11_帽子皇冠.png",
+      "sha_merge": "f3f76c5ede743a5a",
+      "sha_v521": "f3f76c5ede743a5a",
+      "status": "IDENTICAL"
+    },
+    {
+      "scene": "probe_12_帽子学士.png",
+      "sha_merge": "845c7daf6408f80f",
+      "sha_v521": "845c7daf6408f80f",
+      "status": "IDENTICAL"
+    },
+    {
+      "scene": "probe_13_帽子礼帽.png",
+      "sha_merge": "0076e53ea56db53f",
+      "sha_v521": "0076e53ea56db53f",
+      "status": "IDENTICAL"
+    },
+    {
+      "scene": "probe_14_帽子棒球.png",
+      "sha_merge": "8171d6d9e0ea4c3a",
+      "sha_v521": "8171d6d9e0ea4c3a",
+      "status": "IDENTICAL"
+    },
+    {
+      "scene": "probe_15_帽子蝴蝶结.png",
+      "sha_merge": "5794f30f1abfa771",
+      "sha_v521": "5794f30f1abfa771",
+      "status": "IDENTICAL"
+    },
+    {
+      "scene": "probe_16_主题经典绿.png",
+      "sha_merge": "db754561e53a9f36",
+      "sha_v521": "db754561e53a9f36",
+      "status": "IDENTICAL"
+    },
+    {
+      "scene": "probe_17_主题蜜桃粉.png",
+      "sha_merge": "de2de92f5ad8abd2",
+      "sha_v521": "de2de92f5ad8abd2",
+      "status": "IDENTICAL"
+    },
+    {
+      "scene": "probe_18_吐信.png",
+      "sha_merge": "ef00f72f41cd82c5",
+      "sha_v521": "ef00f72f41cd82c5",
+      "status": "IDENTICAL"
+    },
+    {
+      "scene": "probe_19_长蛇100节.png",
+      "sha_merge": "6b0b2e6baa059e76",
+      "sha_v521": "6b0b2e6baa059e76",
+      "status": "IDENTICAL"
+    },
+    {
+      "scene": "probe_20_菜单.png",
+      "sha_merge": "62a84ffb34f11b51",
+      "sha_v521": "62a84ffb34f11b51",
+      "status": "IDENTICAL"
+    }
+  ]
+}
